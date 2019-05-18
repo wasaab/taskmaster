@@ -84,9 +84,10 @@ const styles = StyleSheet.create({
   dayHeader: {
     padding: 10,
     color: 'white',
-    backgroundColor: 'red',
-    fontWeight: '900',
-    fontSize: 18
+    backgroundColor: Colors.headerRed,
+    fontFamily: 'System',
+    fontWeight: '800',
+    fontSize: 26
   }
 });
 

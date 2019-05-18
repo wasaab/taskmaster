@@ -31,12 +31,13 @@ export default class ListItem extends Component {
                 <Badge
                     value={`${this.state.completionPercentage}%`}
                     status="primary"
+                    containerStyle={styles.badgeContainer}
                     badgeStyle={[styles.badge, { borderColor: this.state.completionColor }]}
                     textStyle={[styles.badgeText, { color: this.state.completionColor }]}
                 />
                 <View style={styles.listItemTextContainer}>
-                    <Text style={[styles.text]}>This is a task you need to do</Text>
-                    <Text style={[styles.blocker]}>This is a blocker</Text>
+                    <Text style={[styles.taskTitle]}>Make a create task screen</Text>
+                    <Text style={[styles.blocker]}>React is tricky</Text>
                 </View>
             </View>
         );
@@ -45,40 +46,54 @@ export default class ListItem extends Component {
 
 const styles = StyleSheet.create({
     listItem: {
-        height: 75,
-        alignItems: 'center',
+        height: 62,
+        paddingTop: 10,
+        alignItems: 'flex-start',
         justifyContent: 'space-evenly',
         display: 'flex',
         flexDirection: 'row',
         borderWidth: 0.5,
         borderColor: Colors.darkSecondary
     },
-    text: {
+    taskTitle: {
         color: 'white',
         flex: 0.8,
         flexWrap: 'wrap',
         width: '100%',
         height: 70,
-        flexGrow: 1,
+        // flexGrow: 1,
+        fontFamily: 'System',
+        fontWeight: '700',
+        fontSize: 20,
+        // paddingTop: 5
+    },
+    badgeContainer: {
+        paddingTop: 2,
+        paddingRight: 3
     },
     badge: {
         flex: 0.2,
-        padding: 2,
         borderRadius: 5,
+        borderWidth: 1.5,
         backgroundColor: Colors.darkBackground,
-        width: 40
+        minWidth: 48,
+        minHeight: 15
     },
     badgeText: {
-        textAlign: 'center'
+        textAlign: 'center',
+        fontSize: 15,
+        fontWeight: '800'
     },
     blocker: {
-        color: 'red'
+        color: 'rgba(255,59,48, 0.8)',
+        fontFamily: 'System',
+        fontWeight: '600'
     },
     listItemTextContainer: {
         display: 'flex',
         flexDirection: 'column',
-        padding: 15,
         width: '80%',
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
+        flex: 0.9
     }
 });

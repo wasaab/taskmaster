@@ -14,16 +14,6 @@ export default class TaskListScreen extends React.Component {
     return (
       <View style={styles.container}>
         <TaskList navigate={this.props.navigation.navigate}/>
-        {/* <SwipeUpDown
-          itemMini={true} // Pass props component when collapsed
-          // itemFull={false} // Pass props component when show full
-          // onShowMini={}
-          // onShowFull={}
-          // onMoveDown={}
-          // onMoveUp={}
-          disablePressToShow={false} // Press item mini to show full
-          style={{ backgroundColor: Colors.darkSecondary }} // style for swipe
-        /> */}
       </View>
     );
   }

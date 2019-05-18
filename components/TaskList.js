@@ -8,18 +8,19 @@ import Colors from '../constants/Colors'
 export default class TaskList extends Component {
 
   constructor(props) {
-    console.log('props:', props);
     super(props);
+
     this.navigate = props.navigate;
     this.state = {
+      pageRenderedIn: props.pageRenderedIn || 'TaskList',
       refreshing: false,
       currentlyOpenSwipeable: null,
-      header: 'Today, May 17th'
+      todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet - Friday 17th' : 'Today, Friday 17th'
     };
   }
 
   _onRefresh = () => {
-    this.navigate('Home');
+    this.navigate(this.state.pageRenderedIn === 'TaskList' ? 'Timesheet' : 'TaskList');
   }
 
   handleScroll = () => {
@@ -29,6 +30,18 @@ export default class TaskList extends Component {
       currentlyOpenSwipeable.recenter();
     }
   };
+
+  determineDayDisplayStyle() {
+    return { display: this.state.pageRenderedIn === 'TaskList' ? 'default' : 'none' };
+  }
+
+  refreshControl() {
+    return (
+      <RefreshControl
+      refreshing={this.state.refreshing}
+      onRefresh={this._onRefresh}/>
+    )
+  }
 
   render() {
     const {currentlyOpenSwipeable} = this.state;
@@ -48,28 +61,34 @@ export default class TaskList extends Component {
         onScroll={this.handleScroll}
         scrollEventThrottle={5}
         style={styles.container}
-        refreshControl={
+        refreshControl={(
           <RefreshControl
-            refreshing={this.state.refreshing}
-            onRefresh={this._onRefresh}
-          />
-        }
+          refreshing={this.state.refreshing}
+          onRefresh={this._onRefresh}/>
+        )}
         // stickyHeaderIndices={[0]}
       >
-        <Text style={styles.dayHeader}>{this.state.header}</Text>
+
+        <View style={this.determineDayDisplayStyle()}>
+          <Text style={styles.dayHeader}>Yesterday, Thursday 16th</Text>
+          <SwipeableListItem {...itemProps}/>
+          <SwipeableListItem {...itemProps}/>
+          <SwipeableListItem {...itemProps}/>
+          <SwipeableListItem {...itemProps}/>
+        </View>
+        <Text style={styles.dayHeader}>{this.state.todayHeader}</Text>
         <SwipeableListItem {...itemProps}/>
         <SwipeableListItem {...itemProps}/>
         <SwipeableListItem {...itemProps}/>
         <SwipeableListItem {...itemProps}/>
         <SwipeableListItem {...itemProps}/>
-        <Text style={styles.dayHeader}>Tomorrow, May 15th</Text>
-        <SwipeableListItem {...itemProps}/>
-        <SwipeableListItem {...itemProps}/>
-        <SwipeableListItem {...itemProps}/>
-        <SwipeableListItem {...itemProps}/>
-        <SwipeableListItem {...itemProps}/>
-        <SwipeableListItem {...itemProps}/>
-        <SwipeableListItem {...itemProps}/>
+        <View style={this.determineDayDisplayStyle()}>
+          <Text style={styles.dayHeader}>Tomorrow, Saturday 18th</Text>
+          <SwipeableListItem {...itemProps}/>
+          <SwipeableListItem {...itemProps}/>
+          <SwipeableListItem {...itemProps}/>
+          <SwipeableListItem {...itemProps}/>
+        </View>
       </ScrollView>
     );
   }

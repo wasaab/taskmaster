@@ -3,21 +3,21 @@ import { Platform } from 'react-native';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
-import HomeScreen from '../screens/HomeScreen';
+import TimesheetScreen from '../screens/TimesheetScreen';
 import TaskListScreen from '../screens/TaskListScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
-const HomeStack = createStackNavigator({
+const TimesheetStack = createStackNavigator({
   TaskList: TaskListScreen,
-  CreateTask: HomeScreen
+  CreateTask: TimesheetScreen
 });
 
-HomeStack.navigationOptions = {
-  tabBarLabel: 'Home',
+TimesheetStack.navigationOptions = {
+  tabBarLabel: 'Timesheet',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
       focused={focused}
-      name={Platform.OS === 'ios' ? 'ios-home' : 'md-home'}
+      name={Platform.OS === 'ios' ? 'ios-Timesheet' : 'md-Timesheet'}
     />
   ),
 };
@@ -51,7 +51,7 @@ SettingsStack.navigationOptions = {
 };
 
 export default createBottomTabNavigator({
-  HomeStack,
+  TimesheetStack,
   TaskListStack,
   SettingsStack,
 });

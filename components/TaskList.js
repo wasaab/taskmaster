@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.darkBackground
   },
   dayHeader: {
-    padding: 10,
+    padding: 6,
     color: 'white',
     backgroundColor: Colors.headerRed,
     fontFamily: 'System',

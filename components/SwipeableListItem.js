@@ -58,7 +58,7 @@ export default class SwipeableListItem extends ListItem {
 
     rightSwipeDeleteAction() {
         return (
-            <View style={[styles.rightSwipeItem, { backgroundColor: 'red' }]}>
+            <View style={[styles.rightSwipeItem, { backgroundColor: Colors.statusRed }]}>
                 <Text>Delete</Text>
             </View>
         );

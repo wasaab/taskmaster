@@ -4,6 +4,7 @@ import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
 import Swipeable from 'react-native-swipeable';
 import SwipeableListItem from './SwipeableListItem'
 import Colors from '../constants/Colors'
+import DayHeader from './DayHeader'
 
 export default class TaskList extends Component {
 
@@ -13,6 +14,7 @@ export default class TaskList extends Component {
     this.navigate = props.navigate;
     this.state = {
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
+      showTodayOnly: props.pageRenderedIn === 'Timesheet',
       refreshing: false,
       currentlyOpenSwipeable: null,
       todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet - Friday 17th' : 'Today, Friday 17th'
@@ -50,8 +52,9 @@ export default class TaskList extends Component {
     }
   };
 
+  //Todo: Changing default to flex seems to help allow header to be styled. default is invalid but nothing thrown
   determineDayDisplayStyle() {
-    return { display: this.state.pageRenderedIn === 'TaskList' ? 'default' : 'none' };
+    return { display: this.state.showTodayOnly ? 'none' : 'flex' };
   }
 
   componentDidMount() {
@@ -94,65 +97,24 @@ export default class TaskList extends Component {
             refreshing={this.state.refreshing}
             onRefresh={this._onRefresh} />
         )}
-      // stickyHeaderIndices={[0]}
+        stickyHeaderIndices={[0, 5, 11]}
       >
-
-        <View style={this.determineDayDisplayStyle()}>
-          <View style={styles.dayHeaderContainer}>
-            <Text style={styles.dayHeader}>Yesterday, Thurday 16th</Text>
-            <View style={styles.flexRow}>
-              <Badge
-                value="TIME"
-                status="primary"
-                containerStyle={styles.badgeContainer}
-                badgeStyle={[styles.badge, { borderColor: 'white' }]}
-                textStyle={[styles.badgeText, { color: Colors.headerRed }]}
-              />
-              <Icon iconStyle={styles.chevron} name="chevron-right" type="materialicons" size={35} color="white" />
-            </View>
-          </View>
-          <SwipeableListItem {...itemProps} />
-          <SwipeableListItem {...itemProps} />
-          <SwipeableListItem {...itemProps} />
-          <SwipeableListItem {...itemProps} />
-        </View>
-        <View style={styles.dayHeaderContainer}>
-          <Text style={styles.dayHeader}>{this.state.todayHeader}</Text>
-          <View style={styles.flexRow}>
-            <Badge
-              value="TIME"
-              status="primary"
-              containerStyle={styles.badgeContainer}
-              badgeStyle={[styles.badge, { borderColor: 'white' }]}
-              textStyle={[styles.badgeText, { color: Colors.headerRed }]}
-            />
-            <Icon iconStyle={styles.chevron} name="chevron-right" type="materialicons" size={35} color="white" />
-          </View>
-        </View>
+        <DayHeader title="Yesterday," dayOffset={-1} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <DayHeader title="Today," dayOffset={0} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
-        <View style={this.determineDayDisplayStyle()}>
-          <View style={styles.dayHeaderContainer}>
-            <Text style={styles.dayHeader}>Tomorrow, Saturday 18th</Text>
-            <View style={styles.flexRow}>
-              <Badge
-                value="TIME"
-                status="primary"
-                containerStyle={styles.badgeContainer}
-                badgeStyle={[styles.badge, { borderColor: 'white' }]}
-                textStyle={[styles.badgeText, { color: Colors.headerRed }]}
-              />
-              <Icon iconStyle={styles.chevron} name="chevron-right" type="materialicons" size={35} color="white" />
-            </View>
-          </View>
-          <SwipeableListItem {...itemProps} />
-          <SwipeableListItem {...itemProps} />
-          <SwipeableListItem {...itemProps} />
-          <SwipeableListItem {...itemProps} />
-        </View>
+        <DayHeader title="Tomorrow," dayOffset={1} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
       </ScrollView>
     );
   }
@@ -162,7 +124,7 @@ const styles = StyleSheet.create({
   flexRow: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'flex-end'
+    justifyContent: 'space-between'
   },
   container: {
     flex: 1,

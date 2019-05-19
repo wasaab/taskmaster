@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: Colors.darkSecondary
+    borderColor: Colors.transparentGrayBorder
   },
   hoursLoggedInput: {
     backgroundColor: 'white',

@@ -12,6 +12,7 @@ export default class SwipeableListItem extends ListItem {
 
         this.navigate = props.navigate;
         this.state = {
+            hidden: props.hidden,
             reminderIconColor: 'rgb(76, 145, 221)',
             cancelIconColor: Colors.statusRed,
             completedIconColor: Colors.statusGreen
@@ -45,28 +46,29 @@ export default class SwipeableListItem extends ListItem {
     leftSwipeButtons() {
         return [
             <TouchableOpacity style={styles.leftSwipeItem} onPress={this.handleReminderPress}>
-                <Icon size={28} color={this.state.reminderIconColor} name="schedule" type="materialicons" overlayColor={Colors.darkSecondary}/>
+                <Icon size={28} color={this.state.reminderIconColor} name="schedule" type="materialicons"/>
             </TouchableOpacity>,
             <TouchableOpacity style={styles.leftSwipeItem} onPress={this.handleCancelPress}>
-                <Icon size={28}color={this.state.cancelIconColor} name="not-interested" type="materialicons" overlayColor={Colors.darkSecondary}/>
+                <Icon size={28}color={this.state.cancelIconColor} name="not-interested" type="materialicons"/>
             </TouchableOpacity>,
             <TouchableOpacity style={styles.leftSwipeItem} onPress={this.handleCompletedPress}>
-                <Icon size={28} color={this.state.completedIconColor} name="check-circle" type="materialicons" overlayColor={Colors.darkSecondary}/>
+                <Icon size={28} color={this.state.completedIconColor} name="check-circle" type="materialicons"/>
             </TouchableOpacity>
         ];
     }
 
     rightSwipeDeleteAction() {
         return (
-            <View style={[styles.rightSwipeItem, { backgroundColor: Colors.statusRed }]}>
-                <Text>Delete</Text>
-            </View>
+            <TouchableOpacity style={[styles.rightSwipeItem, { backgroundColor: Colors.headerRed }]}>
+                <Icon size={28} color='white' name="delete" type="materialicons"/>
+            </TouchableOpacity>
         );
     }
 
     render() {
         return (
             <Swipeable
+                style={{ display: this.state.hidden ? 'none' : 'flex'}}
                 leftButtonWidth={45}
                 leftButtons={this.leftSwipeButtons()}
                 rightContent={this.rightSwipeDeleteAction()}
@@ -90,6 +92,8 @@ const styles = StyleSheet.create({
     rightSwipeItem: {
         flex: 1,
         justifyContent: 'center',
+        display: 'flex',
+        alignItems: 'flex-start',
         paddingLeft: 20
     }
 });

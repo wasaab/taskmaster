@@ -13,7 +13,8 @@ export default {
   noticeText: '#fff',
 
   darkBackground: 'rgb(20, 20, 20)',
-  darkSecondary: 'rgba(80,80,80,0.2)',
+  darkSecondary: 'rgb(51,51,51)',
+  transparentGrayBorder: 'rgba(80,80,80,0.2)',
   statusGreen: '#00D240',
   statusYellow: '#FFCB00',
   statusOrange: '#FF8F28',

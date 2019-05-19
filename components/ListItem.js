@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         flexDirection: 'row',
         borderWidth: 0.5,
-        borderColor: Colors.darkSecondary
+        borderColor: Colors.transparentGrayBorder
     },
     taskTitle: {
         color: 'white',

@@ -78,7 +78,7 @@ export default class Reminder extends Component {
                     <Text style={[styles.text, styles.remindToggle]}>{this.state.repeatPeriod}</Text>
                 </View>
                 {/* todo: use a picker solution from here: https://stackoverflow.com/questions/41181683/react-native-ios-picker-is-always-open */}
-                <Picker style={{ flex: 0.8 }} selectedValue={this.state.repeatPeriod} onValueChange={this.handleRepeatPeriodChange}>
+                <Picker style={{ height: 20, marginBottom: 100 }} itemStyle={{ color: 'white'}} selectedValue={this.state.repeatPeriod} onValueChange={this.handleRepeatPeriodChange}>
                     <Picker.Item label="Never" value="Never" />
                     <Picker.Item label="Daily" value="Daily" />
                     <Picker.Item label="Weekly" value="Weekly" />
@@ -92,7 +92,8 @@ export default class Reminder extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
+        // flex: 1,
+        display: 'flex',
         justifyContent: 'center',
         backgroundColor: 'rgb(60,60,60)'
     },

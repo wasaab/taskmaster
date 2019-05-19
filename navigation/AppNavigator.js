@@ -15,6 +15,6 @@ export default createAppContainer(createStackNavigator(
     Reminder: ReminderScreen
   },
   {
-    initialRouteName: 'Reminder'
+    initialRouteName: 'TaskList'
   }
 ));

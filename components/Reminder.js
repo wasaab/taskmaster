@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, View, DatePickerIOS, Switch, Picker } from 'react-native';
 import RNCalendarReminders from 'react-native-calendar-reminders';
 import Colors from '../constants/Colors'
+import ListItem  from './ListItem';
 
 export default class Reminder extends Component {
     constructor(props) {
@@ -54,7 +55,8 @@ export default class Reminder extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <View style={styles.rowFlexContainer}>
+                <ListItem reminder/>
+                <View style={[styles.rowFlexContainer, { marginTop: 10 }]}>
                     <Text style={[styles.leftContent, styles.remindMsg, styles.text]}>Remind me on a day</Text>
                     <Switch
                         style={styles.remindToggle}

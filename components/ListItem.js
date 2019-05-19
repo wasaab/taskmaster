@@ -1,13 +1,21 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Badge } from 'react-native-elements'
+import { StyleSheet, Text, View, Platform } from 'react-native';
+import { Badge, Icon } from 'react-native-elements'
 import Colors from '../constants/Colors'
 
 export default class ListItem extends Component {
-    state = {
-        completionPercentage: Math.floor(Math.random() * 100),
-        completionColor: 'gray'
-    };
+    constructor(props) {
+        super(props);
+
+        // this.handleRemindTimeChange = this.handleRemindTimeChange.bind(this);
+        this.navigate = props.navigate;
+        this.state = {
+            reminder: props.reminder,
+            height: props.reminder ? 80 : 62,
+            completionPercentage: Math.floor(Math.random() * 100),
+            completionColor: 'gray'
+        };
+    }
 
     determineCompletionColor() {
         const percentage = this.state.completionPercentage;
@@ -27,14 +35,17 @@ export default class ListItem extends Component {
         this.state.completionColor =  this.determineCompletionColor();
 
         return (
-            <View style={[styles.listItem, { backgroundColor: Colors.darkBackground }]}>
-                <Badge
-                    value={`${this.state.completionPercentage}%`}
-                    status="primary"
-                    containerStyle={styles.badgeContainer}
-                    badgeStyle={[styles.badge, { borderColor: this.state.completionColor }]}
-                    textStyle={[styles.badgeText, { color: this.state.completionColor }]}
-                />
+            <View style={[styles.listItem, { backgroundColor: Colors.darkBackground }, { height: this.state.height }]}>
+                <View style={styles.iconContainer}>
+                    <Badge
+                        value={`${this.state.completionPercentage}%`}
+                        status="primary"
+                        containerStyle={styles.badgeContainer}
+                        badgeStyle={[styles.badge, { borderColor: this.state.completionColor }]}
+                        textStyle={[styles.badgeText, { color: this.state.completionColor }]}
+                    />
+                    <Icon iconStyle={[styles.timeIcon, { display: this.state.reminder ? 'flex' : 'none' }]} name='clockcircleo' type="antdesign"/>
+                </View>
                 <View style={styles.listItemTextContainer}>
                     <Text style={[styles.taskTitle]}>Make a create task screen</Text>
                     <Text style={[styles.blocker]}>React is tricky</Text>
@@ -45,8 +56,18 @@ export default class ListItem extends Component {
 }
 
 const styles = StyleSheet.create({
+    iconContainer: {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        height: '100%'
+    },
+    timeIcon: {
+        color: 'dodgerblue',
+        paddingBottom: 10
+    },
     listItem: {
-        height: 62,
+        minHeight: 62,
         paddingTop: 10,
         alignItems: 'flex-start',
         justifyContent: 'space-evenly',
@@ -77,7 +98,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         backgroundColor: Colors.darkBackground,
         minWidth: 48,
-        minHeight: 15
+        minHeight: 23
     },
     badgeText: {
         textAlign: 'center',

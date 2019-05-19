@@ -53,7 +53,8 @@ export default class TaskList extends Component {
 
         this.setState({currentlyOpenSwipeable: swipeable});
       },
-      onClose: () => this.setState({currentlyOpenSwipeable: null})
+      onClose: () => this.setState({currentlyOpenSwipeable: null}),
+      navigate: this.navigate
     };
 
     return (

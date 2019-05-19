@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, RefreshControl } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, RefreshControl, AsyncStorage } from 'react-native';
 import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
 import Swipeable from 'react-native-swipeable';
 import SwipeableListItem from './SwipeableListItem'
@@ -19,6 +19,25 @@ export default class TaskList extends Component {
     };
   }
 
+  storeData = async () => {
+    try {
+      await AsyncStorage.setItem('tasks', '1 2 3 4 5')
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('tasks')
+      if(value !== null) {
+        console.log('tasks:', value);
+      }
+    } catch(e) {
+      console.error(e);
+    }
+  }
+W
   _onRefresh = () => {
     this.navigate(this.state.pageRenderedIn === 'TaskList' ? 'Timesheet' : 'TaskList');
   }
@@ -33,6 +52,14 @@ export default class TaskList extends Component {
 
   determineDayDisplayStyle() {
     return { display: this.state.pageRenderedIn === 'TaskList' ? 'default' : 'none' };
+  }
+
+  componentDidMount() {
+    // this.storeData();
+
+    // setTimeout(() => {
+    //   this.getData();
+    // }, 3000);
   }
 
   refreshControl() {

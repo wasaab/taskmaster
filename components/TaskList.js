@@ -13,8 +13,9 @@ export default class TaskList extends Component {
 
     this.navigate = props.navigate;
     this.state = {
+      hoursLogged: props.hoursLogged,
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
-      showTodayOnly: props.pageRenderedIn === 'Timesheet',
+      isTimesheet: props.pageRenderedIn === 'Timesheet',
       refreshing: false,
       currentlyOpenSwipeable: null,
       todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet -' : 'Today,'
@@ -58,7 +59,7 @@ export default class TaskList extends Component {
 
   //Todo: Changing default to flex seems to help allow header to be styled. default is invalid but nothing thrown
   determineDayDisplayStyle() {
-    return { display: this.state.showTodayOnly ? 'none' : 'flex' };
+    return { display: this.state.isTimesheet ? 'none' : 'flex' };
   }
 
   componentDidMount() {
@@ -103,22 +104,22 @@ export default class TaskList extends Component {
         )}
         stickyHeaderIndices={[0, 5, 11]}
       >
-        <DayHeader title="Yesterday," dayOffset={-1} hidden={this.state.showTodayOnly} handleHeaderIconPress={this.handleHeaderIconPress} />
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <DayHeader title="Yesterday," dayOffset={-1} hidden={this.state.isTimesheet} handleHeaderIconPress={this.handleHeaderIconPress} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
         <DayHeader title={this.state.todayHeader} dayOffset={0} handleHeaderIconPress={this.handleHeaderIconPress} />
-        <SwipeableListItem {...itemProps} />
-        <SwipeableListItem {...itemProps} />
-        <SwipeableListItem {...itemProps} />
-        <SwipeableListItem {...itemProps} />
-        <SwipeableListItem {...itemProps} />
-        <DayHeader title="Tomorrow," dayOffset={1} hidden={this.state.showTodayOnly} handleHeaderIconPress={this.handleHeaderIconPress}/>
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
-        <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
+        <DayHeader title="Tomorrow," dayOffset={1} hidden={this.state.isTimesheet} handleHeaderIconPress={this.handleHeaderIconPress} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
+        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
       </ScrollView>
     );
   }

@@ -12,7 +12,7 @@ export default class SwipeableListItem extends ListItem {
 
         this.navigate = props.navigate;
         this.state = {
-            hidden: props.hidden,
+            hoursLogged: props.hoursLogged,
             reminderIconColor: 'rgb(76, 145, 221)',
             cancelIconColor: Colors.statusRed,
             completedIconColor: Colors.statusGreen
@@ -68,14 +68,14 @@ export default class SwipeableListItem extends ListItem {
     render() {
         return (
             <Swipeable
-                style={{ display: this.state.hidden ? 'none' : 'flex'}}
+                style={{ display: this.props.isTimesheet && !this.props.today ? 'none' : 'flex'}}
                 leftButtonWidth={45}
                 leftButtons={this.leftSwipeButtons()}
                 rightContent={this.rightSwipeDeleteAction()}
                 onLeftButtonsOpenRelease={this.props.onOpen}
                 onLeftButtonsCloseRelease={this.props.onClose}
             >
-                <ListItem />
+                <ListItem isTimesheet={this.props.isTimesheet} hoursLogged={this.props.hoursLogged} />
             </Swipeable>
         );
     }

@@ -10,15 +10,19 @@ export default class ListItem extends Component {
         // this.handleRemindTimeChange = this.handleRemindTimeChange.bind(this);
         this.navigate = props.navigate;
         this.state = {
+            hoursLogged: props.hoursLogged,
+            activeTask: false,
             reminder: props.reminder,
             height: props.reminder ? 80 : 62,
-            completionPercentage: Math.floor(Math.random() * 100),
+            badgeValue: props.isTimesheet ? '+' : `${Math.floor(Math.random() * 100)}%`,
             completionColor: 'gray'
         };
     }
 
     determineCompletionColor() {
-        const percentage = this.state.completionPercentage;
+        if (this.props.isTimesheet) { return this.state.activeTask ? 'black' : 'white'; }
+
+        const percentage = this.state.badgeValue.slice(0, -1);
 
         if (percentage > 75) {
             return Colors.statusGreen;
@@ -29,7 +33,15 @@ export default class ListItem extends Component {
         }
 
         return Colors.statusRed;
-    };
+    }
+
+    handleTimeInputBadgePress = () => {
+        this.setState({ activeTask: true, badgeValue: this.props.hoursLogged });
+    }
+
+    handleTimeInputBadgeBlur = () => {
+        this.setState({ activeTask: false });
+    }
 
     render() {
         this.state.completionColor =  this.determineCompletionColor();
@@ -38,10 +50,18 @@ export default class ListItem extends Component {
             <View style={[styles.listItem, { backgroundColor: Colors.darkBackground }, { height: this.state.height }]}>
                 <View style={styles.iconContainer}>
                     <Badge
-                        value={`${this.state.completionPercentage}%`}
+                        onBlur={this.handleTimeInputBadgeBlur}
+                        onPress={this.handleTimeInputBadgePress}
+                        value={this.state.badgeValue}
                         status="primary"
                         containerStyle={styles.badgeContainer}
-                        badgeStyle={[styles.badge, { borderColor: this.state.completionColor }]}
+                        badgeStyle={[
+                            styles.badge,
+                            {
+                                borderColor: this.state.completionColor,
+                                backgroundColor: this.props.isTimesheet && this.state.activeTask ? 'white' : Colors.darkBackground
+                            }
+                        ]}
                         textStyle={[styles.badgeText, { color: this.state.completionColor }]}
                     />
                     <Icon iconStyle={[styles.timeIcon, { display: this.state.reminder ? 'flex' : 'none' }]} name='clockcircleo' type="antdesign"/>

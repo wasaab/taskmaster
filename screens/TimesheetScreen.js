@@ -50,7 +50,7 @@ export default class TimesheetScreen extends React.Component {
   render() {
     return (
       <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
-        <TaskList style={styles.taskList} pageRenderedIn="Timesheet" navigate={this.props.navigation.navigate}/>
+        <TaskList hoursLogged={this.state.hoursLogged} style={styles.taskList} pageRenderedIn="Timesheet" navigate={this.props.navigation.navigate}/>
         <View style={styles.hoursLoggedContainer} onMagicTap={this.navigateToTaskListScreen}>
           <TextInput
             ref='hoursInput'

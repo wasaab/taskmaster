@@ -55,7 +55,7 @@ export default class TimesheetScreen extends React.Component {
           <TextInput
             ref='hoursInput'
             style={styles.hoursLoggedInput}
-            onBlur={this.handleHoursLoggedInputFocusLost}
+            // onBlur={this.handleHoursLoggedInputFocusLost}
             onChangeText={this.handleHoursLoggedInputChange}
             value={this.state.hoursLogged}
             keyboardType="numeric"

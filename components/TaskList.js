@@ -17,7 +17,7 @@ export default class TaskList extends Component {
       showTodayOnly: props.pageRenderedIn === 'Timesheet',
       refreshing: false,
       currentlyOpenSwipeable: null,
-      todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet - Friday 17th' : 'Today, Friday 17th'
+      todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet -' : 'Today,'
     };
   }
 
@@ -41,6 +41,10 @@ export default class TaskList extends Component {
   }
 
   _onRefresh = () => {
+    this.navigate(this.state.pageRenderedIn === 'TaskList' ? 'Timesheet' : 'TaskList');
+  }
+
+  handleHeaderIconPress = () => {
     this.navigate(this.state.pageRenderedIn === 'TaskList' ? 'Timesheet' : 'TaskList');
   }
 
@@ -99,18 +103,18 @@ export default class TaskList extends Component {
         )}
         stickyHeaderIndices={[0, 5, 11]}
       >
-        <DayHeader title="Yesterday," dayOffset={-1} hidden={this.state.showTodayOnly} />
+        <DayHeader title="Yesterday," dayOffset={-1} hidden={this.state.showTodayOnly} handleHeaderIconPress={this.handleHeaderIconPress} />
         <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
         <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
         <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
         <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
-        <DayHeader title="Today," dayOffset={0} />
+        <DayHeader title={this.state.todayHeader} dayOffset={0} handleHeaderIconPress={this.handleHeaderIconPress} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
         <SwipeableListItem {...itemProps} />
-        <DayHeader title="Tomorrow," dayOffset={1} hidden={this.state.showTodayOnly} />
+        <DayHeader title="Tomorrow," dayOffset={1} hidden={this.state.showTodayOnly} handleHeaderIconPress={this.handleHeaderIconPress}/>
         <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
         <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />
         <SwipeableListItem {...itemProps} hidden={this.state.showTodayOnly} />

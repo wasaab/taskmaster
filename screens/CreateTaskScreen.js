@@ -4,9 +4,9 @@ import Reminder from '../components/Reminder'
 import Colors from '../constants/Colors';
 import DayHeader from '../components/DayHeader'
 
-export default class ReminderScreen extends React.Component {
+export default class CreateTaskScreen extends React.Component {
   static navigationOptions = {
-    title: 'Reminder',
+    title: 'CreateTask',
     header: null
   };
 
@@ -17,8 +17,8 @@ export default class ReminderScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <DayHeader title="Create Reminder" noDate handleHeaderIconPress={this.handleHeaderIconPress} />
-        <Reminder/>
+        <DayHeader title="Create Task" noDate dayOffset={0} handleHeaderIconPress={this.handleHeaderIconPress} />
+        {/* <Reminder/> */}
       </View>
     );
   }
@@ -27,7 +27,6 @@ export default class ReminderScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingBottom: 190,
     backgroundColor: Colors.darkBackground
   },
   header: {

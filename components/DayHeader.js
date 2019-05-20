@@ -7,11 +7,14 @@ export default class DayHeader extends Component {
   constructor(props) {
     super(props);
 
-    this.navigate = props.navigate;
+    this.handleHeaderIconPress= props.handleHeaderIconPress,
     this.state = {
+      noDate: props.noDate,
       title: props.title,
       dayOffset: props.dayOffset,
-      hidden: props.hidden
+      hidden: props.hidden,
+      touchableAreaFlex: props.title.endsWith(',') ? 0.2 : 0.23,
+      badgeText: props.title.endsWith(',') ? 'TIME' : 'TASKS'
     };
   }
 
@@ -24,6 +27,8 @@ export default class DayHeader extends Component {
   }
 
   determineDate() {
+    if (this.state.noDate) { return; }
+
     var day = new Date();
     day.setDate(day.getDate() + this.state.dayOffset);
     var dateTokens = day.toLocaleString([], {weekday: 'long', day:'numeric'}).split(' ');
@@ -35,10 +40,10 @@ export default class DayHeader extends Component {
     return (
       <View style={[styles.dayHeaderContainer, this.determineDayDisplayStyle()]}>
         <View style={styles.flexRow}>
-          <Text style={styles.dayHeader}>{this.state.title} {this.determineDate()}</Text>
-          <TouchableOpacity style={{display: 'flex', flexDirection: 'row', flex: 0.2 }}>
+          <Text style={[styles.dayHeader, { flex: 1 - this.state.touchableAreaFlex }]}>{this.state.title} {this.determineDate()}</Text>
+          <TouchableOpacity style={{display: 'flex', flexDirection: 'row', flex: this.state.touchableAreaFlex }} onPress={this.handleHeaderIconPress}>
             <Badge
-              value="TIME"
+              value={this.state.badgeText}
               status="primary"
               containerStyle={styles.badgeContainer}
               badgeStyle={[styles.badge, { borderColor: 'white' }]}
@@ -75,8 +80,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontFamily: 'System',
     fontWeight: '800',
-    fontSize: 22,
-    flex: 0.80
+    fontSize: 22
   },
   dayHeaderContainer: {
     backgroundColor: Colors.headerRed,

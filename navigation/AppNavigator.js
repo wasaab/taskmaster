@@ -5,6 +5,7 @@ import { createAppContainer, createStackNavigator } from 'react-navigation';
 import TaskListScreen from '../screens/TaskListScreen';
 import TimesheetScreen from '../screens/TimesheetScreen';
 import ReminderScreen from '../screens/ReminderScreen';
+import CreateTaskScreen from '../screens/CreateTaskScreen';
 
 export default createAppContainer(createStackNavigator(
   {
@@ -12,7 +13,8 @@ export default createAppContainer(createStackNavigator(
   // Read more at https://reactnavigation.org/docs/en/auth-flow.html
     Timesheet: TimesheetScreen,
     TaskList: TaskListScreen,
-    Reminder: ReminderScreen
+    Reminder: ReminderScreen,
+    CreateTask: CreateTaskScreen
   },
   {
     initialRouteName: 'TaskList'

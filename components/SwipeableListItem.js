@@ -43,16 +43,10 @@ export default class SwipeableListItem extends ListItem {
         }, 70);
     }
 
-    leftSwipeButtons() {
+    leftSwipeCompleteAction() {
         return [
-            <TouchableOpacity style={styles.leftSwipeItem} onPress={this.handleReminderPress}>
-                <Icon size={28} color={this.state.reminderIconColor} name="schedule" type="materialicons"/>
-            </TouchableOpacity>,
-            <TouchableOpacity style={styles.leftSwipeItem} onPress={this.handleCancelPress}>
-                <Icon size={28}color={this.state.cancelIconColor} name="not-interested" type="materialicons"/>
-            </TouchableOpacity>,
-            <TouchableOpacity style={styles.leftSwipeItem} onPress={this.handleCompletedPress}>
-                <Icon size={28} color={this.state.completedIconColor} name="check-circle" type="materialicons"/>
+            <TouchableOpacity style={[styles.leftSwipeItem, { backgroundColor: Colors.statusGreen }]}>
+                <Icon size={28} color='white' name="check-circle" type="materialicons"/>
             </TouchableOpacity>
         ];
     }
@@ -65,17 +59,28 @@ export default class SwipeableListItem extends ListItem {
         );
     }
 
+    componentWillUnmount() {
+        this.props.onOpen = () => {};
+        this.props.onClose = () => {};
+    }
+
     render() {
         return (
             <Swipeable
                 style={{ display: this.props.isTimesheet && !this.props.today ? 'none' : 'flex'}}
-                leftButtonWidth={45}
-                leftButtons={this.leftSwipeButtons()}
+                leftButtonWidth={70}
+                leftButtons={this.leftSwipeCompleteAction()}
                 rightContent={this.rightSwipeDeleteAction()}
-                onLeftButtonsOpenRelease={this.props.onOpen}
-                onLeftButtonsCloseRelease={this.props.onClose}
+                onLeftButtonsOpenRelease={() => {}}
+                onLeftButtonsCloseRelease={() => {}}
             >
-                <ListItem isTimesheet={this.props.isTimesheet} hoursLogged={this.props.hoursLogged} />
+                <ListItem
+                    title={this.props.title}
+                    blocker={this.props.blocker}
+                    completionPercentage={this.props.completionPercentage}
+                    isTimesheet={this.props.isTimesheet}
+                    hoursLogged={this.props.hoursLogged}
+                />
             </Swipeable>
         );
     }

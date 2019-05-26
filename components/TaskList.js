@@ -13,6 +13,9 @@ export default class TaskList extends Component {
 
     this.navigate = props.navigate;
     this.state = {
+      dayCount: 0,
+      taskCount: 0,
+      tasks: [],
       hoursLogged: props.hoursLogged,
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
@@ -20,6 +23,7 @@ export default class TaskList extends Component {
       currentlyOpenSwipeable: null,
       todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet -' : 'Today,'
     };
+    this.initTasks();
   }
 
   storeData = async () => {
@@ -34,7 +38,7 @@ export default class TaskList extends Component {
     try {
       const value = await AsyncStorage.getItem('tasks')
       if (value !== null) {
-        console.log('tasks:', value);
+        // console.log('tasks:', value);
       }
     } catch (e) {
       console.error(e);
@@ -62,6 +66,25 @@ export default class TaskList extends Component {
     return { display: this.state.isTimesheet ? 'none' : 'flex' };
   }
 
+  getTodayPlusOffset(offset = 0) {
+    var day = new Date();
+    day.setDate(day.getDate() + offset);
+
+    return day;
+  }
+
+  buildTask(title, blocker, completionPercentage, date, remindTime) {
+    date = date || new Date();
+
+    return {
+      title: title,
+      blocker: blocker,
+      completionPercentage: completionPercentage,
+      date: date.valueOf(),
+      remindTime: remindTime
+    };
+  }
+
   componentDidMount() {
     // this.storeData();
 
@@ -78,17 +101,67 @@ export default class TaskList extends Component {
     )
   }
 
+  initTasks = () => {
+    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(-1)));
+    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(-1)));
+    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(-1)));
+
+    this.state.tasks.push(this.buildTask('Make a create task screen', 'Clarification needed', 40));
+    this.state.tasks.push(this.buildTask('Improve the reminder screen', 'Need mockup from Collin', 70));
+    this.state.tasks.push(this.buildTask('Make a timesheet screen', 'Clarification needed', 83));
+    this.state.tasks.push(this.buildTask('Make the task title wrap', 'Lots of static padding', 0));
+    this.state.tasks.push(this.buildTask('Improve styling', 'I can\'t see', 27));
+
+    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
+    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
+    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
+    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
+  }
+
+  buildDayList = (day, title, itemProps) => {
+    const targetDay = day.toLocaleDateString();
+    const isToday = new Date().toLocaleDateString() === targetDay;
+
+    // console.log('targetDay:', targetDay);
+    // console.log('today:', new Date().toLocaleDateString());
+    // console.log('isToday:', isToday);
+    return [
+      <DayHeader key={`header${this.state.dayCount++}`} title={title} day={day} hidden={this.state.isTimesheet && !isToday} handleHeaderIconPress={this.handleHeaderIconPress} />,
+      this.state.tasks.filter((t) => new Date(t.date).toLocaleDateString() === targetDay).map((task) =>
+        <SwipeableListItem key={`task${this.state.taskCount++}`} {...task} {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} today={isToday} />
+      )
+    ];
+  }
+
+  getScrollViewProps = () => {
+    return {
+      onScroll: this.handleScroll,
+      scrollEventThrottle: 5,
+      style: styles.container,
+      refreshControl:
+        <RefreshControl
+          refreshing={this.state.refreshing}
+          onRefresh={this._onRefresh} />
+      ,
+      stickyHeaderIndices: [0, 4, 10]
+    }
+  }
+
   render() {
     const { currentlyOpenSwipeable } = this.state;
     const itemProps = {
       onOpen: (event, gestureState, swipeable) => {
+        console.log('open');
         if (currentlyOpenSwipeable && currentlyOpenSwipeable !== swipeable) {
           currentlyOpenSwipeable.recenter();
         }
 
         this.setState({ currentlyOpenSwipeable: swipeable });
       },
-      onClose: () => this.setState({ currentlyOpenSwipeable: null }),
+      onClose: () => {
+        console.log('closed');
+        this.setState({ currentlyOpenSwipeable: null });
+      },
       navigate: this.navigate
     };
 
@@ -102,24 +175,11 @@ export default class TaskList extends Component {
             refreshing={this.state.refreshing}
             onRefresh={this._onRefresh} />
         )}
-        stickyHeaderIndices={[0, 5, 11]}
+        stickyHeaderIndices={[0, 4, 10]}
       >
-        <DayHeader title="Yesterday," dayOffset={-1} hidden={this.state.isTimesheet} handleHeaderIconPress={this.handleHeaderIconPress} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
-        <DayHeader title={this.state.todayHeader} dayOffset={0} handleHeaderIconPress={this.handleHeaderIconPress} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.props.hoursLogged} today />
-        <DayHeader title="Tomorrow," dayOffset={1} hidden={this.state.isTimesheet} handleHeaderIconPress={this.handleHeaderIconPress} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
-        <SwipeableListItem {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} />
+        {this.buildDayList(this.getTodayPlusOffset(-1), "Yesterday,", itemProps)}
+        {this.buildDayList(this.getTodayPlusOffset(0), this.state.todayHeader, itemProps)}
+        {this.buildDayList(this.getTodayPlusOffset(1), "Tomorrow,", itemProps)}
       </ScrollView>
     );
   }

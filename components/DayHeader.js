@@ -11,7 +11,6 @@ export default class DayHeader extends Component {
     this.state = {
       noDate: props.noDate,
       title: props.title,
-      dayOffset: props.dayOffset,
       hidden: props.hidden,
       touchableAreaFlex: props.title.endsWith(',') ? 0.2 : 0.23,
       badgeText: props.title.endsWith(',') ? 'TIME' : 'TASKS'
@@ -26,21 +25,25 @@ export default class DayHeader extends Component {
     return n + (n > 0 ? ['th', 'st', 'nd', 'rd'][(n > 3 && n < 21) || n % 10 > 3 ? 0 : n % 10] : '');
   }
 
-  determineDate() {
+  determineDate = () => {
     if (this.state.noDate) { return; }
 
-    var day = new Date();
-    day.setDate(day.getDate() + this.state.dayOffset);
-    var dateTokens = day.toLocaleString([], {weekday: 'long', day:'numeric'}).split(' ');
+    // var day = new Date();
+    // day.setDate(day.getDate() + this.state.dayOffset);
+    var dateTokens = this.props.day.toLocaleString([], {weekday: 'long', day:'numeric'}).split(' ');
 
     return `${dateTokens[1]} ${this.getOrdinalNum(dateTokens[0])}`;
+  }
+
+  determineHeaderTextColor = () => {
+    return this.props.day.toLocaleDateString() === new Date().toLocaleDateString() ? 'white' : 'rgba(255, 255, 255, 0.7)';
   }
 
   render() {
     return (
       <View style={[styles.dayHeaderContainer, this.determineDayDisplayStyle()]}>
         <View style={styles.flexRow}>
-          <Text style={[styles.dayHeader, { flex: 1 - this.state.touchableAreaFlex }]}>{this.state.title} {this.determineDate()}</Text>
+          <Text style={[styles.dayHeader, { flex: 1 - this.state.touchableAreaFlex }, { color: this.determineHeaderTextColor()}]}>{this.state.title} {this.determineDate()}</Text>
           <TouchableOpacity style={{display: 'flex', flexDirection: 'row', flex: this.state.touchableAreaFlex }} onPress={this.handleHeaderIconPress}>
             <Badge
               value={this.state.badgeText}
@@ -80,7 +83,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontFamily: 'System',
     fontWeight: '800',
-    fontSize: 22
+    fontSize: 21
   },
   dayHeaderContainer: {
     backgroundColor: Colors.headerRed,

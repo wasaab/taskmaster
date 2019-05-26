@@ -14,7 +14,7 @@ export default class ListItem extends Component {
             activeTask: false,
             reminder: props.reminder,
             height: props.reminder ? 80 : 62,
-            badgeValue: props.isTimesheet ? '+' : `${Math.floor(Math.random() * 100)}%`,
+            badgeValue: props.isTimesheet ? '+' : `${props.completionPercentage}%`,
             completionColor: 'gray'
         };
     }
@@ -67,8 +67,8 @@ export default class ListItem extends Component {
                     <Icon iconStyle={[styles.timeIcon, { display: this.state.reminder ? 'flex' : 'none' }]} name='clockcircleo' type="antdesign"/>
                 </View>
                 <View style={styles.listItemTextContainer}>
-                    <Text style={[styles.taskTitle]}>Make a create task screen</Text>
-                    <Text style={[styles.blocker]}>React is tricky</Text>
+                    <Text style={[styles.taskTitle]}>{this.props.title}</Text>
+                    <Text style={[styles.blocker]}>{this.props.blocker}</Text>
                 </View>
             </View>
         );

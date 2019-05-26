@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, RefreshControl, AsyncStorage } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight } from 'react-native';
 import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
 import Swipeable from 'react-native-swipeable';
+import { SwipeListView } from 'react-native-swipe-list-view';
 import SwipeableListItem from './SwipeableListItem'
 import Colors from '../constants/Colors'
 import DayHeader from './DayHeader'
+import ListItem from './ListItem';
 
 export default class TaskList extends Component {
 
@@ -20,215 +22,272 @@ export default class TaskList extends Component {
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
       refreshing: false,
-      currentlyOpenSwipeable: null,
-      todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet -' : 'Today,'
+      todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet -' : 'Today,',
+      sectionListData: [],
+      dayIdx: -1
     };
+
+    this.rowSwipeAnimatedValues = {};
+		Array(5).fill('').forEach((_, i) => {
+        Array(5).fill('').forEach((_, j) => {
+            this.rowSwipeAnimatedValues[`${i}.${j}`] = new Animated.Value(0);
+        });
+    });
     this.initTasks();
+
+    this.state.sectionListData.push(this.buildDayList(getTodayPlusOffset(-1), "Yesterday,"), this.buildDayList(getTodayPlusOffset(0), this.state.todayHeader), this.buildDayList(getTodayPlusOffset(1), "Tomorrow,"));
+
+    console.log('sectionListData:', this.state.sectionListData);
   }
 
-  storeData = async () => {
-    try {
-      await AsyncStorage.setItem('tasks', '1 2 3 4 5')
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  getData = async () => {
-    try {
-      const value = await AsyncStorage.getItem('tasks')
-      if (value !== null) {
-        // console.log('tasks:', value);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  _onRefresh = () => {
+  navigateBack = () => {
     this.navigate(this.state.pageRenderedIn === 'TaskList' ? 'Timesheet' : 'TaskList');
+  }
+
+  onRefresh = () => {
+    this.navigateBack();
   }
 
   handleHeaderIconPress = () => {
-    this.navigate(this.state.pageRenderedIn === 'TaskList' ? 'Timesheet' : 'TaskList');
+    this.navigateBack();
   }
 
-  handleScroll = () => {
-    const { currentlyOpenSwipeable } = this.state;
-
-    if (currentlyOpenSwipeable) {
-      currentlyOpenSwipeable.recenter();
-    }
-  };
-
   //Todo: Changing default to flex seems to help allow header to be styled. default is invalid but nothing thrown
-  determineDayDisplayStyle() {
+  determineDayDisplayStyle = () => {
     return { display: this.state.isTimesheet ? 'none' : 'flex' };
   }
 
-  getTodayPlusOffset(offset = 0) {
-    var day = new Date();
-    day.setDate(day.getDate() + offset);
-
-    return day;
-  }
-
-  buildTask(title, blocker, completionPercentage, date, remindTime) {
-    date = date || new Date();
-
-    return {
-      title: title,
-      blocker: blocker,
-      completionPercentage: completionPercentage,
-      date: date.valueOf(),
-      remindTime: remindTime
-    };
-  }
-
-  componentDidMount() {
-    // this.storeData();
+  componentDidMount = () => {
+    // storeData();
 
     // setTimeout(() => {
-    //   this.getData();
+    //   getData();
     // }, 3000);
   }
 
-  refreshControl() {
+  //Todo: Use this for refresh behavior in sectionlist?
+  refreshControl = () => {
     return (
       <RefreshControl
         refreshing={this.state.refreshing}
-        onRefresh={this._onRefresh} />
+        onRefresh={this.onRefresh} />
     )
   }
 
   initTasks = () => {
-    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(-1)));
-    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(-1)));
-    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(-1)));
+    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(-1)));
+    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(-1)));
+    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(-1)));
 
-    this.state.tasks.push(this.buildTask('Make a create task screen', 'Clarification needed', 40));
-    this.state.tasks.push(this.buildTask('Improve the reminder screen', 'Need mockup from Collin', 70));
-    this.state.tasks.push(this.buildTask('Make a timesheet screen', 'Clarification needed', 83));
-    this.state.tasks.push(this.buildTask('Make the task title wrap', 'Lots of static padding', 0));
-    this.state.tasks.push(this.buildTask('Improve styling', 'I can\'t see', 27));
+    this.state.tasks.push(buildTask('Make a create task screen', 'Clarification needed', 40));
+    this.state.tasks.push(buildTask('Improve the reminder screen', 'Need mockup from Collin', 70));
+    this.state.tasks.push(buildTask('Make a timesheet screen', 'Clarification needed', 83));
+    this.state.tasks.push(buildTask('Make the task title wrap', 'Lots of static padding', 0));
+    this.state.tasks.push(buildTask('Improve styling', 'I can\'t see', 27));
 
-    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
-    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
-    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
-    this.state.tasks.push(this.buildTask('Finish the application', 'React is tricky', 45, this.getTodayPlusOffset(1)));
+    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
+    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
+    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
+    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
+
+    console.log(this.state.tasks);
   }
 
-  buildDayList = (day, title, itemProps) => {
+  buildDayList = (day, title) => {
     const targetDay = day.toLocaleDateString();
     const isToday = new Date().toLocaleDateString() === targetDay;
 
     // console.log('targetDay:', targetDay);
     // console.log('today:', new Date().toLocaleDateString());
     // console.log('isToday:', isToday);
-    return [
-      <DayHeader key={`header${this.state.dayCount++}`} title={title} day={day} hidden={this.state.isTimesheet && !isToday} handleHeaderIconPress={this.handleHeaderIconPress} />,
-      this.state.tasks.filter((t) => new Date(t.date).toLocaleDateString() === targetDay).map((task) =>
-        <SwipeableListItem key={`task${this.state.taskCount++}`} {...task} {...itemProps} isTimesheet={this.state.isTimesheet} hoursLogged={this.state.hoursLogged} today={isToday} />
-      )
-    ];
+    this.state.dayIdx++;
+    return {
+      title: title,
+      day: day,
+      data: this.state.tasks.filter((t) => new Date(t.date).toLocaleDateString() === targetDay).map((task, taskIdx) => Object.assign({ key: `${this.state.dayIdx}.${taskIdx}`}, task))
+    };
   }
 
-  getScrollViewProps = () => {
-    return {
-      onScroll: this.handleScroll,
-      scrollEventThrottle: 5,
-      style: styles.container,
-      refreshControl:
-        <RefreshControl
-          refreshing={this.state.refreshing}
-          onRefresh={this._onRefresh} />
-      ,
-      stickyHeaderIndices: [0, 4, 10]
+  closeRow = (rowMap, rowKey) => {
+    if (rowMap[rowKey]) {
+      rowMap[rowKey].closeRow();
     }
   }
 
+  deleteSectionRow = (rowMap, rowKey) => {
+    this.closeRow(rowMap, rowKey);
+
+    setTimeout(() => {
+      var [section, row] = rowKey.split('.');
+      const newData = [...this.state.sectionListData];
+      const prevIndex = this.state.sectionListData[section].data.findIndex(item => item.key === rowKey);
+      newData[section].data.splice(prevIndex, 1);
+      this.setState({ sectionListData: newData });
+    }, 250)
+  }
+
+  onRowOpen = (rowKey, rowMap) => {
+    console.log('This row opening', rowKey);
+    this.closeRow(rowMap, rowKey);
+  }
+
+  onRowDidOpen = (rowKey, rowMap, toValue) => {
+    console.log('This row opened', rowKey);
+    console.log('val:', toValue);
+    if (toValue < 0) {
+      this.deleteSectionRow(rowMap, rowKey);
+    }
+  }
+
+  onSwipeValueChange = (swipeData) => {
+    const { key, value } = swipeData;
+    this.rowSwipeAnimatedValues[key].setValue(Math.abs(value));
+  }
+
+  renderTaskItem = (data, rowMap) => {
+    return <TouchableHighlight onPress={_ => console.log('You touched me')} style={styles.rowFront} underlayColor={'#AAA'}>
+      <ListItem title={data.item.title} blocker={data.item.blocker} completionPercentage={data.item.completionPercentage} isTimesheet={false} hoursLogged={2} />
+    </TouchableHighlight>;
+  }
+
+  renderSwipeItems = (data, rowMap) => {
+    return <View style={styles.rowBack}>
+      <TouchableOpacity style={[styles.leftSwipeItem, { backgroundColor: Colors.statusGreen }]}>
+        <Animated.View style={{
+          transform: [
+            {
+              scale: this.rowSwipeAnimatedValues[data.item.key].interpolate({
+                inputRange: [45, 90],
+                outputRange: [0, 1],
+                extrapolate: 'clamp',
+              }),
+            }
+          ],
+        }}>
+          <Icon size={28} color='white' name="check-circle" type="materialicons" />
+        </Animated.View>
+      </TouchableOpacity>
+      <TouchableOpacity style={[styles.rightSwipeItem, { backgroundColor: Colors.headerRed }]} onPress={_ => this.deleteSectionRow(rowMap, data.item.key)}>
+        <Animated.View style={{
+          transform: [
+            {
+              scale: this.rowSwipeAnimatedValues[data.item.key].interpolate({
+                inputRange: [45, 90],
+                outputRange: [0, 1],
+                extrapolate: 'clamp',
+              }),
+            }
+          ],
+        }}>
+          <Icon size={28} color='white' name="delete" type="materialicons" />
+        </Animated.View>
+      </TouchableOpacity>
+    </View>;
+  }
+
   render() {
-    const { currentlyOpenSwipeable } = this.state;
-    const itemProps = {
-      onOpen: (event, gestureState, swipeable) => {
-        console.log('open');
-        if (currentlyOpenSwipeable && currentlyOpenSwipeable !== swipeable) {
-          currentlyOpenSwipeable.recenter();
-        }
-
-        this.setState({ currentlyOpenSwipeable: swipeable });
-      },
-      onClose: () => {
-        console.log('closed');
-        this.setState({ currentlyOpenSwipeable: null });
-      },
-      navigate: this.navigate
-    };
-
     return (
-      <ScrollView
-        onScroll={this.handleScroll}
-        scrollEventThrottle={5}
-        style={styles.container}
-        refreshControl={(
-          <RefreshControl
-            refreshing={this.state.refreshing}
-            onRefresh={this._onRefresh} />
-        )}
-        stickyHeaderIndices={[0, 4, 10]}
-      >
-        {this.buildDayList(this.getTodayPlusOffset(-1), "Yesterday,", itemProps)}
-        {this.buildDayList(this.getTodayPlusOffset(0), this.state.todayHeader, itemProps)}
-        {this.buildDayList(this.getTodayPlusOffset(1), "Tomorrow,", itemProps)}
-      </ScrollView>
+      <View style={styles.container}>
+        <SwipeListView
+          useSectionList
+          sections={this.state.sectionListData}
+          renderSectionHeader={({ section: { title, day } }) => (
+            <DayHeader title={title} day={day} hidden={false} handleHeaderIconPress={this.handleHeaderIconPress} />
+          )}
+          renderItem={this.renderTaskItem}
+          renderHiddenItem={this.renderSwipeItems}
+          leftOpenValue={90}
+          rightOpenValue={-90}
+          swipeToOpenPercent={100}
+          stopLeftSwipe={170}
+          stopRightSwipe={-170}
+          previewRowKey={'0'}
+          previewOpenValue={-40}
+          previewOpenDelay={3000}
+          friction={9}
+          tension={38}
+          onRowOpen={this.onRowOpen}
+          onRowDidOpen={this.onRowDidOpen}
+          onSwipeValueChange={this.onSwipeValueChange}
+        />
+      </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  flexRow: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
   container: {
-    flex: 1,
-    // paddingBottom: 190,
-    backgroundColor: Colors.darkBackground
-  },
-  chevron: {
-    paddingTop: 4,
-    paddingRight: 4,
-    marginLeft: -6
-  },
-  dayHeader: {
-    padding: 6,
-    color: 'white',
-    fontFamily: 'System',
-    fontWeight: '800',
-    fontSize: 24
-  },
-  dayHeaderContainer: {
-    backgroundColor: Colors.headerRed,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between'
-  },
-  badgeContainer: {
-    paddingTop: 8
-  },
-  badge: {
-    flex: 0.2,
-    borderRadius: 5,
-    borderWidth: 1.5,
     backgroundColor: 'white',
-    minWidth: 48,
-    minHeight: 23
+    flex: 1
   },
-  badgeText: {
-    textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '800'
-  }
+  rowFront: {
+
+  },
+  rowBack: {
+    alignItems: 'center',
+    backgroundColor: '#DDD',
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingLeft: 15,
+  },
+  rightSwipeItem: {
+    alignItems: 'flex-end',
+    bottom: 0,
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    width: '50%',
+    right: 0,
+    paddingRight: 10
+  },
+  //I can get this side aligned by changing alignItems to flex-start for left and flex-end for right, then playing with left and right props
+  leftSwipeItem: {
+    alignItems: 'flex-start',
+    bottom: 0,
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    width: '50%',
+    left: 0,
+    paddingLeft: 10
+  },
 });
 
+async function storeData() {
+  try {
+    await AsyncStorage.setItem('tasks', '1 2 3 4 5')
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function getData() {
+  try {
+    const value = await AsyncStorage.getItem('tasks')
+    if (value !== null) {
+      // console.log('tasks:', value);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function buildTask(title, blocker, completionPercentage, date, remindTime) {
+  date = date || new Date();
+
+  return {
+    title: title,
+    blocker: blocker,
+    completionPercentage: completionPercentage,
+    date: date.valueOf(),
+    remindTime: remindTime
+  };
+}
+
+function getTodayPlusOffset(offset = 0) {
+  var day = new Date();
+  day.setDate(day.getDate() + offset);
+
+  return day;
+}

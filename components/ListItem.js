@@ -47,13 +47,13 @@ export default class ListItem extends Component {
     handleTimeInputBadgePress = () => {
         this.setState({ hoursLogged: '' });
         this.props.handleTimeInputBadgePress(this.props.taskID);
-        console.log('press');
+        // console.log('press');
 
         // this.setState({ activeTask: true, badgeValue: this.props.currHoursLoggedInputValue });
     }
 
     handleHoursInputBlur = () => {
-        console.log('blur');
+        // console.log('blur');
         this.props.addToTotalHoursLogged(this.props.taskID, this.state.hoursLogged);
         this.setState({ activeTask: false, active: false });
     }

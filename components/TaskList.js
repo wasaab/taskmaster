@@ -139,6 +139,8 @@ export default class TaskList extends Component {
     // console.log('val:', toValue);
     if (toValue < 0) {
       this.deleteSectionRow(rowMap, rowKey);
+    } else {
+      // Change background color of this row's percantage badge to show its complete
     }
   }
 
@@ -249,6 +251,8 @@ export default class TaskList extends Component {
           onRowOpen={this.onRowOpen}
           onRowDidOpen={this.onRowDidOpen}
           onSwipeValueChange={this.onSwipeValueChange}
+          disableLeftSwipe={this.state.isTimesheet}
+          disableRightSwipe={this.state.isTimesheet}
         />
       </View>
     );

@@ -37,7 +37,7 @@ export default class TimesheetScreen extends React.Component {
   addToTotalHoursLogged = (taskID, hours) => {
     this.taskToHoursLogged[taskID] = hours;
     const updatedHoursLogged = `${Object.values(this.taskToHoursLogged).reduce((totalHours, taskHours) => Number(totalHours) + Number(taskHours))}`;
-    console.log('no active task');
+    // console.log('no active task');
     this.setState({ hoursLogged: updatedHoursLogged, activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
   }
 

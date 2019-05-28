@@ -30,19 +30,15 @@ export default class TimesheetScreen extends React.Component {
     this.state = {
       hoursLogged: '0',
       inputSelected: React.DocumentSelectionState,
-      activeTaskKey: ''
     };
   };
 
   addToTotalHoursLogged = (taskID, hours) => {
     this.taskToHoursLogged[taskID] = hours;
-    const updatedHoursLogged = `${Object.values(this.taskToHoursLogged).reduce((totalHours, taskHours) => Number(totalHours) + Number(taskHours))}`;
+    console.log('hours:', hours);
+    const updatedHoursLogged = Object.values(this.taskToHoursLogged).reduce((totalHours, taskHours) => Number(totalHours) + Number(taskHours)) || 0;
     // console.log('no active task');
-    this.setState({ hoursLogged: updatedHoursLogged, activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
-  }
-
-  handleTimeInputBadgePress = (key) => {
-    this.setState({ activeTaskKey: key });
+    this.setState({ hoursLogged: `${updatedHoursLogged}` });
   }
 
   componentDidMount() {
@@ -61,7 +57,6 @@ export default class TimesheetScreen extends React.Component {
           style={styles.taskList}
           pageRenderedIn="Timesheet"
           navigate={this.props.navigation.navigate}
-          activeTaskKey={this.state.activeTaskKey}
           handleTimeInputBadgePress={this.handleTimeInputBadgePress}
           addToTotalHoursLogged={this.addToTotalHoursLogged}
         />

@@ -11,6 +11,7 @@ export default class ListItem extends Component {
         // console.log('item props:', props);
         this.navigate = props.navigate;
         this.state = {
+            completionPercentage: props.completionPercentage,
             hoursLogged: props.hoursLogged === 0 ? '' : `${props.hoursLogged}`,
             activeTask: props.activeTaskKey === props.taskID,
             reminder: props.reminder,
@@ -40,33 +41,49 @@ export default class ListItem extends Component {
         return this.props.activeTaskKey === this.props.taskID;
     }
 
-    shouldShowHoursInput = () => {
-        return this.isActiveTask() || Number(this.state.hoursLogged) > 0;
+    shouldShowInput = () => {
+        return this.isActiveTask() || this.props.isTimesheet && Number(this.state.hoursLogged) > 0;
     }
 
-    handleTimeInputBadgePress = () => {
-        this.setState({ hoursLogged: '' });
+    handleInputBadgePress = () => {
+        if (this.props.isTimesheet) {
+            this.setState({ hoursLogged: '' });
+        } else {
+            this.setState({ completionPercentage: '' });
+        }
+
         this.props.handleTimeInputBadgePress(this.props.taskID);
         // console.log('press');
 
         // this.setState({ activeTask: true, badgeValue: this.props.currHoursLoggedInputValue });
     }
 
-    handleHoursInputBlur = () => {
+    handleInputBlur = () => {
         // console.log('blur');
-        this.props.addToTotalHoursLogged(this.props.taskID, this.state.hoursLogged);
-        this.setState({ activeTask: false, active: false });
+        const newBadgeValue = this.props.isTimesheet ? '+' :  `${this.state.completionPercentage}%`;
+
+        this.props.handleInputBlur(this.props.taskID, this.state.hoursLogged);
+        this.setState({ activeTask: false, badgeValue: newBadgeValue });
     }
 
-    handleHoursLoggedInputChange = (hours) => {
-        this.setState({ hoursLogged: hours });
+    handleInputChange = (newValue) => {
+        if (this.props.isTimesheet) {
+            this.setState({ hoursLogged: newValue });
+        } else {
+            this.setState({ completionPercentage: newValue });
+        }
     }
 
     componentDidUpdate = () => {
         // console.log('updated');
         if (!this.isActiveTask() || !this.ref) { return; }
 
+        console.log('focus');
         this.ref.focus();
+    }
+
+    determineInputValue = () => {
+        return this.props.isTimesheet ? this.state.hoursLogged : this.state.completionPercentage;
     }
 
     render() {
@@ -80,9 +97,9 @@ export default class ListItem extends Component {
         return (
             <View style={[styles.listItem, { backgroundColor: Colors.darkBackground, height: this.state.height, display: this.props.isTimesheet && !this.props.today ? 'none' : 'flex'}]}>
                 <View style={styles.iconContainer}>
-                    {!this.shouldShowHoursInput() &&
+                    {!this.shouldShowInput() &&
                     <Badge
-                        onPress={this.handleTimeInputBadgePress}
+                        onPress={this.handleInputBadgePress}
                         value={this.state.badgeValue}
                         status="primary"
                         containerStyle={styles.badgeContainer}
@@ -96,18 +113,18 @@ export default class ListItem extends Component {
                         textStyle={[styles.badgeText, { color: this.state.completionColor }]}
                     />
                     }
-                  {this.shouldShowHoursInput()  &&
+                  {this.shouldShowInput()  &&
                     <TextInput
                         // onEndEditing={() => { console.log('triggered just before blur'); }}
-                        onFocus={this.handleTimeInputBadgePress}
-                        onBlur={this.handleHoursInputBlur}
+                        onFocus={this.handleInputBadgePress}
+                        onBlur={this.handleInputBlur}
                         ref={ref => {
                             this.ref = ref
                         }}
                         style={[styles.hoursLoggedInput]}
                         // onBlur={this.handleHoursLoggedInputFocusLost}
-                        onChangeText={this.handleHoursLoggedInputChange}
-                        value={this.state.hoursLogged}
+                        onChangeText={this.handleInputChange}
+                        value={this.determineInputValue()}
                         keyboardType="numeric"
                         clearTextOnFocus={true}
                         autofocus={true}

@@ -15,6 +15,7 @@ export default class TaskList extends Component {
 
     this.navigate = props.navigate;
     this.state = {
+      activeTaskKey: '',
       dayCount: 0,
       taskCount: 0,
       tasks: [],
@@ -168,6 +169,18 @@ export default class TaskList extends Component {
     return activeSwipeDirection ? getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side);
   }
 
+  handleInputBlur = (taskID, hours) => {
+    if (this.state.isTimesheet) {
+      this.props.addToTotalHoursLogged(taskID, hours);
+    }
+
+    this.setState({ activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
+  }
+
+  handleTimeInputBadgePress = (key) => {
+    this.setState({ activeTaskKey: key });
+  }
+
   renderTaskItem = (data, rowMap) => {
     // console.log('data:', data.item);
     return <TouchableHighlight onPress={_ => console.log('You touched me')} style={styles.rowFront} underlayColor={'#AAA'}>
@@ -179,10 +192,10 @@ export default class TaskList extends Component {
         today={data.section.isToday}
         hoursLogged={data.item.hoursLogged}
         currHoursLoggedInputValue={this.props.hoursLogged}
-        activeTaskKey={this.props.activeTaskKey}
+        activeTaskKey={this.state.activeTaskKey}
         taskID={data.item.key}
-        handleTimeInputBadgePress={this.props.handleTimeInputBadgePress}
-        addToTotalHoursLogged={this.props.addToTotalHoursLogged}
+        handleTimeInputBadgePress={this.handleTimeInputBadgePress}
+        handleInputBlur={this.handleInputBlur}
       />
     </TouchableHighlight>;
   }

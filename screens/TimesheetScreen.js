@@ -28,7 +28,7 @@ export default class TimesheetScreen extends React.Component {
     super(props);
     this.taskToHoursLogged = {};
     this.state = {
-      hoursLogged: '',
+      hoursLogged: '0',
       inputSelected: React.DocumentSelectionState,
       activeTaskKey: ''
     };

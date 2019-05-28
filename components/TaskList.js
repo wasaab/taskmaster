@@ -18,7 +18,6 @@ export default class TaskList extends Component {
       dayCount: 0,
       taskCount: 0,
       tasks: [],
-      hoursLogged: props.hoursLogged,
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
       refreshing: false,
@@ -27,6 +26,7 @@ export default class TaskList extends Component {
       dayIdx: -1
     };
 
+    this.taskIdToActiveSwipeDirection = {};
     this.rowSwipeAnimatedValues = {};
 		Array(5).fill('').forEach((_, i) => {
         Array(5).fill('').forEach((_, j) => {
@@ -37,7 +37,7 @@ export default class TaskList extends Component {
 
     this.state.sectionListData.push(this.buildDayList(getTodayPlusOffset(-1), "Yesterday,"), this.buildDayList(getTodayPlusOffset(0), this.state.todayHeader), this.buildDayList(getTodayPlusOffset(1), "Tomorrow,"));
 
-    console.log('sectionListData:', this.state.sectionListData);
+    // console.log('sectionListData:', this.state.sectionListData);
   }
 
   navigateBack = () => {
@@ -90,7 +90,7 @@ export default class TaskList extends Component {
     this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
     this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
 
-    console.log(this.state.tasks);
+    // console.log(this.state.tasks);
   }
 
   buildDayList = (day, title) => {
@@ -104,13 +104,16 @@ export default class TaskList extends Component {
     return {
       title: title,
       day: day,
-      data: this.state.tasks.filter((t) => new Date(t.date).toLocaleDateString() === targetDay).map((task, taskIdx) => Object.assign({ key: `${this.state.dayIdx}.${taskIdx}`}, task))
+      isToday: isToday,
+      data: this.state.tasks.filter((t) => new Date(t.date).toLocaleDateString() === targetDay)
+        .map((task, taskIdx) => Object.assign({ key: `${this.state.dayIdx}.${taskIdx}`}, task))
     };
   }
 
   closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
       rowMap[rowKey].closeRow();
+      delete this.taskIdToActiveSwipeDirection[rowKey];
     }
   }
 
@@ -126,14 +129,14 @@ export default class TaskList extends Component {
     }, 250)
   }
 
-  onRowOpen = (rowKey, rowMap) => {
-    console.log('This row opening', rowKey);
+  onRowOpen = (rowKey, rowMap, toValue) => {
+    // console.log('This row opening', rowKey);
     this.closeRow(rowMap, rowKey);
   }
 
   onRowDidOpen = (rowKey, rowMap, toValue) => {
-    console.log('This row opened', rowKey);
-    console.log('val:', toValue);
+    // console.log('This row opened', rowKey);
+    // console.log('val:', toValue);
     if (toValue < 0) {
       this.deleteSectionRow(rowMap, rowKey);
     }
@@ -142,47 +145,84 @@ export default class TaskList extends Component {
   onSwipeValueChange = (swipeData) => {
     const { key, value } = swipeData;
     this.rowSwipeAnimatedValues[key].setValue(Math.abs(value));
+
+    const direction = value < 0 ? 'right' : 'left';
+
+    if (this.taskIdToActiveSwipeDirection[key] === direction) { return; }
+
+    this.taskIdToActiveSwipeDirection[key] = direction;
+    this.setState({ taskIdToActiveSwipeDirection: this.taskIdToActiveSwipeDirection });
+  }
+
+  determineRowColor = (taskID, side) => {
+    const activeSwipeDirection = this.taskIdToActiveSwipeDirection[taskID];
+    // console.log('color?');
+    // if (taskID === '2.3') {
+
+    //   console.log('--------------------------------------------------------------')
+    //   console.log('active swipe direction:', activeSwipeDirection);
+    //   console.log('color:', activeSwipeDirection ? getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side));
+    // }
+    return activeSwipeDirection ? getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side);
   }
 
   renderTaskItem = (data, rowMap) => {
+    // console.log('data:', data.item);
     return <TouchableHighlight onPress={_ => console.log('You touched me')} style={styles.rowFront} underlayColor={'#AAA'}>
-      <ListItem title={data.item.title} blocker={data.item.blocker} completionPercentage={data.item.completionPercentage} isTimesheet={false} hoursLogged={2} />
+      <ListItem
+        title={data.item.title}
+        blocker={data.item.blocker}
+        completionPercentage={data.item.completionPercentage}
+        isTimesheet={this.state.isTimesheet}
+        today={data.section.isToday}
+        hoursLogged={data.item.hoursLogged}
+        currHoursLoggedInputValue={this.props.hoursLogged}
+        activeTaskKey={this.props.activeTaskKey}
+        taskID={data.item.key}
+        handleTimeInputBadgePress={this.props.handleTimeInputBadgePress}
+        addToTotalHoursLogged={this.props.addToTotalHoursLogged}
+      />
     </TouchableHighlight>;
   }
 
   renderSwipeItems = (data, rowMap) => {
-    return <View style={styles.rowBack}>
-      <TouchableOpacity style={[styles.leftSwipeItem, { backgroundColor: Colors.statusGreen }]}>
+    return <View style={[styles.rowBack, { backgroundColor: this.determineRowColor(data.item.key) }]}>
+      <TouchableOpacity style={[styles.leftSwipeItem, { backgroundColor: this.determineRowColor(data.item.key, 'left') }]}>
         <Animated.View style={{
-          transform: [
-            {
-              scale: this.rowSwipeAnimatedValues[data.item.key].interpolate({
-                inputRange: [45, 90],
-                outputRange: [0, 1],
-                extrapolate: 'clamp',
-              }),
-            }
-          ],
+          opacity: this.getOpacityFromSwipeVal(data.item.key),
+          transform: [{
+            scale: this.getScaleFromSwipeVal(data.item.key)
+          }]
         }}>
           <Icon size={28} color='white' name="check-circle" type="materialicons" />
         </Animated.View>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.rightSwipeItem, { backgroundColor: Colors.headerRed }]} onPress={_ => this.deleteSectionRow(rowMap, data.item.key)}>
+      <TouchableOpacity style={[styles.rightSwipeItem, { backgroundColor: this.determineRowColor(data.item.key, 'right') }]} onPress={_ => this.deleteSectionRow(rowMap, data.item.key)}>
         <Animated.View style={{
-          transform: [
-            {
-              scale: this.rowSwipeAnimatedValues[data.item.key].interpolate({
-                inputRange: [45, 90],
-                outputRange: [0, 1],
-                extrapolate: 'clamp',
-              }),
-            }
-          ],
+          opacity: this.getOpacityFromSwipeVal(data.item.key),
+          transform: [{
+            scale: this.getScaleFromSwipeVal(data.item.key)
+          }]
         }}>
           <Icon size={28} color='white' name="delete" type="materialicons" />
         </Animated.View>
       </TouchableOpacity>
     </View>;
+  }
+
+  getScaleFromSwipeVal(key) {
+    return this.rowSwipeAnimatedValues[key].interpolate({
+      inputRange: [45, 90],
+      outputRange: [0, 1],
+      extrapolate: 'clamp',
+    });
+  }
+
+  getOpacityFromSwipeVal(key) {
+    return this.rowSwipeAnimatedValues[key].interpolate({
+      inputRange: [0, 89, 90],
+      outputRange: [0.5, 0.5, 1]
+    });
   }
 
   render() {
@@ -191,16 +231,16 @@ export default class TaskList extends Component {
         <SwipeListView
           useSectionList
           sections={this.state.sectionListData}
-          renderSectionHeader={({ section: { title, day } }) => (
-            <DayHeader title={title} day={day} hidden={false} handleHeaderIconPress={this.handleHeaderIconPress} />
+          renderSectionHeader={({ section: { title, day, isToday } }) => (
+            <DayHeader title={title} day={day} hidden={this.state.isTimesheet && !isToday} handleHeaderIconPress={this.handleHeaderIconPress} />
           )}
           renderItem={this.renderTaskItem}
           renderHiddenItem={this.renderSwipeItems}
           leftOpenValue={90}
           rightOpenValue={-90}
           swipeToOpenPercent={100}
-          stopLeftSwipe={170}
-          stopRightSwipe={-170}
+          stopLeftSwipe={307}
+          stopRightSwipe={-307}
           previewRowKey={'0'}
           previewOpenValue={-40}
           previewOpenDelay={3000}
@@ -217,7 +257,7 @@ export default class TaskList extends Component {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: Colors.darkBackground,
     flex: 1
   },
   rowFront: {
@@ -254,6 +294,10 @@ const styles = StyleSheet.create({
   },
 });
 
+function getSwipeDirectionColor(side) {
+  return side ==='left' ? Colors.statusGreen : Colors.headerRed;
+}
+
 async function storeData() {
   try {
     await AsyncStorage.setItem('tasks', '1 2 3 4 5')
@@ -280,6 +324,7 @@ function buildTask(title, blocker, completionPercentage, date, remindTime) {
     title: title,
     blocker: blocker,
     completionPercentage: completionPercentage,
+    hoursLogged: 0,
     date: date.valueOf(),
     remindTime: remindTime
   };

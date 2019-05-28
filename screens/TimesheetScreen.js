@@ -26,17 +26,23 @@ export default class TimesheetScreen extends React.Component {
 
   constructor(props) {
     super(props);
-
+    this.taskToHoursLogged = {};
     this.state = {
       hoursLogged: '',
-      inputSelected: React.DocumentSelectionState
+      inputSelected: React.DocumentSelectionState,
+      activeTaskKey: ''
     };
   };
 
-  handleHoursLoggedInputChange = (newValue) => {
-    this.setState({
-      hoursLogged: newValue
-    });
+  addToTotalHoursLogged = (taskID, hours) => {
+    this.taskToHoursLogged[taskID] = hours;
+    const updatedHoursLogged = `${Object.values(this.taskToHoursLogged).reduce((totalHours, taskHours) => Number(totalHours) + Number(taskHours))}`;
+    console.log('no active task');
+    this.setState({ hoursLogged: updatedHoursLogged, activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
+  }
+
+  handleTimeInputBadgePress = (key) => {
+    this.setState({ activeTaskKey: key });
   }
 
   componentDidMount() {
@@ -50,7 +56,15 @@ export default class TimesheetScreen extends React.Component {
   render() {
     return (
       <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
-        <TaskList hoursLogged={this.state.hoursLogged} style={styles.taskList} pageRenderedIn="Timesheet" navigate={this.props.navigation.navigate}/>
+        <TaskList
+          hoursLogged={this.state.hoursLogged}
+          style={styles.taskList}
+          pageRenderedIn="Timesheet"
+          navigate={this.props.navigation.navigate}
+          activeTaskKey={this.state.activeTaskKey}
+          handleTimeInputBadgePress={this.handleTimeInputBadgePress}
+          addToTotalHoursLogged={this.addToTotalHoursLogged}
+        />
         <View style={styles.hoursLoggedContainer} onMagicTap={this.navigateToTaskListScreen}>
           <TextInput
             ref='hoursInput'
@@ -64,6 +78,7 @@ export default class TimesheetScreen extends React.Component {
             placeholder="0.00"
             keyboardAppearance="dark"
             maxLength={5}
+            editable={false}
           />
           <Text style={styles.hoursLoggedMsg}>Hours logged today.</Text>
         </View>

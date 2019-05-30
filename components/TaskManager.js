@@ -34,7 +34,7 @@ export default class TaskManager {
                 if (!tasks) {
                     this.tasks = [
                         {
-                          "day": "5/28/2019",
+                          "day": this.getTodayPlusOffset(-1).toLocaleDateString(),
                           "data": [
                             {
                               "key": "193685690",
@@ -63,7 +63,7 @@ export default class TaskManager {
                           ]
                         },
                         {
-                          "day": "5/29/2019",
+                          "day": this.getTodayPlusOffset().toLocaleDateString(),
                           "data": [
                             {
                               "key": "-1314165795",
@@ -108,7 +108,7 @@ export default class TaskManager {
                           ]
                         },
                         {
-                          "day": "5/30/2019",
+                          "day": this.getTodayPlusOffset(1).toLocaleDateString(),
                           "data": [
                             {
                               "key": "-1811633621",
@@ -167,6 +167,13 @@ export default class TaskManager {
         }
 
         return `${hash}`;
+    }
+
+    getTodayPlusOffset(offset = 0) {
+        var day = new Date();
+        day.setDate(day.getDate() + offset);
+
+        return day;
     }
 }
 

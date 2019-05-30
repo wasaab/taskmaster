@@ -62,7 +62,7 @@ export default class ListItem extends Component {
         // console.log('blur');
         const newBadgeValue = this.props.isTimesheet ? '+' :  `${this.state.completionPercentage}%`;
 
-        this.props.handleInputBlur(this.props.taskID, this.state.hoursLogged);
+        this.props.handleInputBlur(this.props.taskID, this.state.hoursLogged, this.state.completionPercentage);
         this.setState({ activeTask: false, badgeValue: newBadgeValue });
     }
 

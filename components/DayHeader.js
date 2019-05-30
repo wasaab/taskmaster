@@ -10,11 +10,20 @@ export default class DayHeader extends Component {
     this.handleHeaderIconPress= props.handleHeaderIconPress,
     this.state = {
       noDate: props.noDate,
-      title: props.title,
       hidden: props.hidden,
-      touchableAreaFlex: props.title.endsWith(',') ? 0.2 : 0.23,
-      badgeText: props.title.endsWith(',') ? 'TIME' : 'TASKS'
+      touchableAreaFlex: !props.isTimesheet ? 0.2 : 0.23,
+      badgeText: !props.isTimesheet ? 'TIME' : 'TASKS'
     };
+  }
+
+  determineTitle() {
+    if (this.props.day === new Date().toLocaleDateString()) {
+      return this.props.isTimesheet ? 'Timesheet -' : 'Today,';
+    } else if (this.props.day === getTodayPlusOffset(-1).toLocaleDateString()) {
+      return 'Yesterday,';
+    } else if (this.props.day === getTodayPlusOffset(1).toLocaleDateString()) {
+      return 'Tomorrow,';
+    }
   }
 
   determineDayDisplayStyle() {
@@ -28,22 +37,20 @@ export default class DayHeader extends Component {
   determineDate = () => {
     if (this.state.noDate) { return; }
 
-    // var day = new Date();
-    // day.setDate(day.getDate() + this.state.dayOffset);
-    var dateTokens = this.props.day.toLocaleString([], {weekday: 'long', day:'numeric'}).split(' ');
+    const dateTokens = new Date(this.props.day).toLocaleString([], {weekday: 'long', day:'numeric'}).split(' ');
 
     return `${dateTokens[1]} ${this.getOrdinalNum(dateTokens[0])}`;
   }
 
   determineHeaderTextColor = () => {
-    return this.props.day.toLocaleDateString() === new Date().toLocaleDateString() ? 'white' : 'rgba(255, 255, 255, 0.7)';
+    return new Date(this.props.day).toLocaleDateString() === new Date().toLocaleDateString() ? 'white' : 'rgba(255, 255, 255, 0.7)';
   }
 
   render() {
     return (
       <View style={[styles.dayHeaderContainer, this.determineDayDisplayStyle()]}>
         <View style={styles.flexRow}>
-          <Text style={[styles.dayHeader, { flex: 1 - this.state.touchableAreaFlex }, { color: this.determineHeaderTextColor()}]}>{this.state.title} {this.determineDate()}</Text>
+          <Text style={[styles.dayHeader, { flex: 1 - this.state.touchableAreaFlex }, { color: this.determineHeaderTextColor()}]}>{this.determineTitle()} {this.determineDate()}</Text>
           <TouchableOpacity style={{display: 'flex', flexDirection: 'row', flex: this.state.touchableAreaFlex }} onPress={this.handleHeaderIconPress}>
             <Badge
               value={this.state.badgeText}
@@ -60,6 +67,13 @@ export default class DayHeader extends Component {
   };
 }
 
+function getTodayPlusOffset(offset = 0) {
+  var day = new Date();
+  day.setDate(day.getDate() + offset);
+
+  return day;
+}
+
 const styles = StyleSheet.create({
   flexRow: {
     display: 'flex',
@@ -69,7 +83,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    // paddingBottom: 190,
     backgroundColor: Colors.darkBackground
   },
   chevron: {

@@ -1,44 +1,51 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight } from 'react-native';
 import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
-import Swipeable from 'react-native-swipeable';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import SwipeableListItem from './SwipeableListItem'
 import Colors from '../constants/Colors'
 import DayHeader from './DayHeader'
 import ListItem from './ListItem';
+import TaskManager from './TaskManager';
+
+const taskManager = new TaskManager();
 
 export default class TaskList extends Component {
 
   constructor(props) {
+    console.log('reconstructing task list');
     super(props);
 
     this.navigate = props.navigate;
     this.state = {
       activeTaskKey: '',
-      dayCount: 0,
-      taskCount: 0,
-      tasks: [],
+      tasks: taskManager.tasks,
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
       refreshing: false,
-      todayHeader: props.pageRenderedIn === 'Timesheet' ? 'Timesheet -' : 'Today,',
-      sectionListData: [],
-      dayIdx: -1
     };
 
     this.taskIdToActiveSwipeDirection = {};
     this.rowSwipeAnimatedValues = {};
-		Array(5).fill('').forEach((_, i) => {
-        Array(5).fill('').forEach((_, j) => {
-            this.rowSwipeAnimatedValues[`${i}.${j}`] = new Animated.Value(0);
+
+    this.state.tasks.forEach((day) => {
+        day.data.forEach((task) => {
+          this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
         });
     });
-    this.initTasks();
+  }
 
-    this.state.sectionListData.push(this.buildDayList(getTodayPlusOffset(-1), "Yesterday,"), this.buildDayList(getTodayPlusOffset(0), this.state.todayHeader), this.buildDayList(getTodayPlusOffset(1), "Tomorrow,"));
+  buildTask(title, blocker, completionPercentage, date, remindTime) {
+    date = date || new Date();
 
-    // console.log('sectionListData:', this.state.sectionListData);
+    return {
+      key: taskManager.getTaskId({ title: title, date: date.valueOf() }),
+      title: title,
+      blocker: blocker,
+      completionPercentage: completionPercentage,
+      hoursLogged: 0,
+      date: date.valueOf(),
+      remindTime: remindTime
+    };
   }
 
   navigateBack = () => {
@@ -53,17 +60,12 @@ export default class TaskList extends Component {
     this.navigateBack();
   }
 
-  //Todo: Changing default to flex seems to help allow header to be styled. default is invalid but nothing thrown
   determineDayDisplayStyle = () => {
     return { display: this.state.isTimesheet ? 'none' : 'flex' };
   }
 
   componentDidMount = () => {
-    // storeData();
 
-    // setTimeout(() => {
-    //   getData();
-    // }, 3000);
   }
 
   //Todo: Use this for refresh behavior in sectionlist?
@@ -73,42 +75,6 @@ export default class TaskList extends Component {
         refreshing={this.state.refreshing}
         onRefresh={this.onRefresh} />
     )
-  }
-
-  initTasks = () => {
-    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(-1)));
-    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(-1)));
-    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(-1)));
-
-    this.state.tasks.push(buildTask('Make a create task screen', 'Clarification needed', 40));
-    this.state.tasks.push(buildTask('Improve the reminder screen', 'Need mockup from Collin', 70));
-    this.state.tasks.push(buildTask('Make a timesheet screen', 'Clarification needed', 83));
-    this.state.tasks.push(buildTask('Make the task title wrap', 'Lots of static padding', 0));
-    this.state.tasks.push(buildTask('Improve styling', 'I can\'t see', 27));
-
-    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
-    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
-    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
-    this.state.tasks.push(buildTask('Finish the application', 'React is tricky', 45, getTodayPlusOffset(1)));
-
-    // console.log(this.state.tasks);
-  }
-
-  buildDayList = (day, title) => {
-    const targetDay = day.toLocaleDateString();
-    const isToday = new Date().toLocaleDateString() === targetDay;
-
-    // console.log('targetDay:', targetDay);
-    // console.log('today:', new Date().toLocaleDateString());
-    // console.log('isToday:', isToday);
-    this.state.dayIdx++;
-    return {
-      title: title,
-      day: day,
-      isToday: isToday,
-      data: this.state.tasks.filter((t) => new Date(t.date).toLocaleDateString() === targetDay)
-        .map((task, taskIdx) => Object.assign({ key: `${this.state.dayIdx}.${taskIdx}`}, task))
-    };
   }
 
   closeRow = (rowMap, rowKey) => {
@@ -123,10 +89,10 @@ export default class TaskList extends Component {
 
     setTimeout(() => {
       var [section, row] = rowKey.split('.');
-      const newData = [...this.state.sectionListData];
-      const prevIndex = this.state.sectionListData[section].data.findIndex(item => item.key === rowKey);
+      const newData = [...this.state.tasks];
+      const prevIndex = this.state.tasks[section].data.findIndex(item => item.key === rowKey);
       newData[section].data.splice(prevIndex, 1);
-      this.setState({ sectionListData: newData });
+      this.setState({ tasks: newData });
     }, 250)
   }
 
@@ -159,20 +125,27 @@ export default class TaskList extends Component {
 
   determineRowColor = (taskID, side) => {
     const activeSwipeDirection = this.taskIdToActiveSwipeDirection[taskID];
-    // console.log('color?');
-    // if (taskID === '2.3') {
 
-    //   console.log('--------------------------------------------------------------')
-    //   console.log('active swipe direction:', activeSwipeDirection);
-    //   console.log('color:', activeSwipeDirection ? getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side));
-    // }
     return activeSwipeDirection ? getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side);
   }
 
-  handleInputBlur = (taskID, hours) => {
-    if (this.state.isTimesheet) {
-      this.props.addToTotalHoursLogged(taskID, hours);
-    }
+  handleInputBlur = (taskID, hours, completionPercentage) => {
+    //updated sectioned task list used for diplay of tasks
+    this.state.tasks.some((section) => {
+      const targetTask = section.data.find((task) => task.key === taskID);
+
+      if (!targetTask) { return false; }
+
+      if (this.state.isTimesheet) {
+        targetTask.hoursLogged = hours;
+        // this.props.addToTotalHoursLogged(taskID, hours);
+      } else {
+        targetTask.completionPercentage = completionPercentage;
+      }
+
+      // taskManager.updateTask(targetTask);
+      return true;
+    });
 
     this.setState({ activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
   }
@@ -182,14 +155,13 @@ export default class TaskList extends Component {
   }
 
   renderTaskItem = (data, rowMap) => {
-    // console.log('data:', data.item);
     return <TouchableHighlight onPress={_ => console.log('You touched me')} style={styles.rowFront} underlayColor={'#AAA'}>
       <ListItem
         title={data.item.title}
         blocker={data.item.blocker}
         completionPercentage={data.item.completionPercentage}
         isTimesheet={this.state.isTimesheet}
-        today={data.section.isToday}
+        today={data.section.day === new Date().toLocaleDateString()}
         hoursLogged={data.item.hoursLogged}
         currHoursLoggedInputValue={this.props.hoursLogged}
         activeTaskKey={this.state.activeTaskKey}
@@ -245,9 +217,9 @@ export default class TaskList extends Component {
       <View style={styles.container}>
         <SwipeListView
           useSectionList
-          sections={this.state.sectionListData}
-          renderSectionHeader={({ section: { title, day, isToday } }) => (
-            <DayHeader title={title} day={day} hidden={this.state.isTimesheet && !isToday} handleHeaderIconPress={this.handleHeaderIconPress} />
+          sections={this.state.tasks}
+          renderSectionHeader={({ section: { day } }) => (
+            <DayHeader day={day} isTimesheet={this.state.isTimesheet} hidden={this.state.isTimesheet && day !== new Date().toLocaleDateString()} handleHeaderIconPress={this.handleHeaderIconPress} />
           )}
           renderItem={this.renderTaskItem}
           renderHiddenItem={this.renderSwipeItems}
@@ -298,7 +270,6 @@ const styles = StyleSheet.create({
     right: 0,
     paddingRight: 10
   },
-  //I can get this side aligned by changing alignItems to flex-start for left and flex-end for right, then playing with left and right props
   leftSwipeItem: {
     alignItems: 'flex-start',
     bottom: 0,
@@ -313,43 +284,4 @@ const styles = StyleSheet.create({
 
 function getSwipeDirectionColor(side) {
   return side ==='left' ? Colors.statusGreen : Colors.headerRed;
-}
-
-async function storeData() {
-  try {
-    await AsyncStorage.setItem('tasks', '1 2 3 4 5')
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-async function getData() {
-  try {
-    const value = await AsyncStorage.getItem('tasks')
-    if (value !== null) {
-      // console.log('tasks:', value);
-    }
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-function buildTask(title, blocker, completionPercentage, date, remindTime) {
-  date = date || new Date();
-
-  return {
-    title: title,
-    blocker: blocker,
-    completionPercentage: completionPercentage,
-    hoursLogged: 0,
-    date: date.valueOf(),
-    remindTime: remindTime
-  };
-}
-
-function getTodayPlusOffset(offset = 0) {
-  var day = new Date();
-  day.setDate(day.getDate() + offset);
-
-  return day;
 }

@@ -3,6 +3,7 @@ import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { AppLoading, Asset, Constants, Font, Icon } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 import Colors from './constants/Colors'
+import TaskManager from './components/TaskManager';
 
 export default class App extends React.Component {
   state = {
@@ -10,6 +11,8 @@ export default class App extends React.Component {
   };
 
   render() {
+    new TaskManager().updateTasksFromStorage();
+
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
       return (
         <AppLoading

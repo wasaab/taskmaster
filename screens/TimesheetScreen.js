@@ -15,6 +15,9 @@ import {
 } from 'react-native';
 import TaskList from '../components/TaskList';
 import Colors from '../constants/Colors';
+import TaskManager from '../components/TaskManager';
+
+const taskManager = new TaskManager();
 
 export default class TimesheetScreen extends React.Component {
   static navigationOptions = {
@@ -23,20 +26,24 @@ export default class TimesheetScreen extends React.Component {
   };
 
   constructor(props) {
+    const dayIdx = taskManager.tasks.findIndex((daySection) => daySection.day === new Date().toLocaleDateString());
+
     super(props);
-    this.taskToHoursLogged = {};
+    this.dayIdx = dayIdx;
     this.state = {
-      hoursLogged: '0',
-      inputSelected: React.DocumentSelectionState,
+      hoursLogged: taskManager.tasks[this.dayIdx].hoursLogged
     };
   };
 
   addToTotalHoursLogged = (taskID, hours) => {
-    this.taskToHoursLogged[taskID] = hours;
-    console.log('hours:', hours);
-    const updatedHoursLogged = Object.values(this.taskToHoursLogged).reduce((totalHours, taskHours) => Number(totalHours) + Number(taskHours)) || 0;
-    // console.log('no active task');
-    this.setState({ hoursLogged: `${updatedHoursLogged}` });
+    const totalHours = `${taskManager.tasks[this.dayIdx].data.reduce((dayHours, task, i) => {
+      if (i === 1) { return Number(dayHours.hoursLogged) + Number(task.hoursLogged); }
+
+      return dayHours + Number(task.hoursLogged);
+    })}`;
+
+    this.setState({ hoursLogged: totalHours });
+    taskManager.tasks[this.dayIdx].hoursLogged = totalHours;
   }
 
   componentDidMount() {

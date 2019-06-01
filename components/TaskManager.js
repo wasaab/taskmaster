@@ -11,6 +11,26 @@ export default class TaskManager {
         return TaskManager.instance;
     }
 
+    getTask(taskID) {
+        var targetTask;
+
+        this.tasks.some((section, dayIndex) => {
+          return section.data.some((task, taskIndex) => {
+            if (task.key !== taskID) { return false; }
+
+            targetTask = {
+              task: task,
+              dayIdx: dayIndex,
+              taskIdx: taskIndex
+            };
+
+            return true;
+          });
+        });
+
+        return targetTask;
+    }
+
     updateTask(updatedTask) {
         const taskIdx = this.tasks.findIndex((task) => task.key === updatedTask.key);
 
@@ -29,7 +49,7 @@ export default class TaskManager {
     }
 
     updateTasksFromStorage() {
-        AsyncStorage.getItem('tasks')
+        AsyncStorage.getItem('demoTasks')
             .then((tasks) => {
                 if (!tasks) {
                     this.tasks = [
@@ -64,6 +84,7 @@ export default class TaskManager {
                         },
                         {
                           "day": this.getTodayPlusOffset().toLocaleDateString(),
+                          "hoursLogged": '0',
                           "data": [
                             {
                               "key": "-1314165795",

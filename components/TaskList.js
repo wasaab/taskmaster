@@ -18,7 +18,6 @@ export default class TaskList extends Component {
     this.navigate = props.navigate;
     this.state = {
       activeTaskKey: '',
-      tasks: taskManager.tasks,
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
       refreshing: false,
@@ -27,7 +26,7 @@ export default class TaskList extends Component {
     this.taskIdToActiveSwipeDirection = {};
     this.rowSwipeAnimatedValues = {};
 
-    this.state.tasks.forEach((day) => {
+    taskManager.tasks.forEach((day) => {
         day.data.forEach((task) => {
           this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
         });
@@ -84,26 +83,21 @@ export default class TaskList extends Component {
     }
   }
 
-  deleteSectionRow = (rowMap, rowKey) => {
-    this.closeRow(rowMap, rowKey);
+  deleteSectionRow = (rowMap, taskID) => {
+    this.closeRow(rowMap, taskID);
 
     setTimeout(() => {
-      var [section, row] = rowKey.split('.');
-      const newData = [...this.state.tasks];
-      const prevIndex = this.state.tasks[section].data.findIndex(item => item.key === rowKey);
-      newData[section].data.splice(prevIndex, 1);
-      this.setState({ tasks: newData });
+      const { dayIdx, taskIdx } = taskManager.getTask(taskID);
+      taskManager.tasks[dayIdx].data.splice(taskIdx, 1);
     }, 250)
   }
 
   onRowOpen = (rowKey, rowMap, toValue) => {
-    // console.log('This row opening', rowKey);
+
     this.closeRow(rowMap, rowKey);
   }
 
   onRowDidOpen = (rowKey, rowMap, toValue) => {
-    // console.log('This row opened', rowKey);
-    // console.log('val:', toValue);
     if (toValue < 0) {
       this.deleteSectionRow(rowMap, rowKey);
     } else {
@@ -130,23 +124,16 @@ export default class TaskList extends Component {
   }
 
   handleInputBlur = (taskID, hours, completionPercentage) => {
-    //updated sectioned task list used for diplay of tasks
-    this.state.tasks.some((section) => {
-      const targetTask = section.data.find((task) => task.key === taskID);
+    const { task } = taskManager.getTask(taskID);
 
-      if (!targetTask) { return false; }
+    if (this.state.isTimesheet) {
+      task.hoursLogged = hours;
+      this.props.addToTotalHoursLogged(taskID, hours);
+    } else {
+      task.completionPercentage = completionPercentage;
+    }
 
-      if (this.state.isTimesheet) {
-        targetTask.hoursLogged = hours;
-        // this.props.addToTotalHoursLogged(taskID, hours);
-      } else {
-        targetTask.completionPercentage = completionPercentage;
-      }
-
-      // taskManager.updateTask(targetTask);
-      return true;
-    });
-
+    // taskManager.updateTask(targetTask);
     this.setState({ activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
   }
 
@@ -217,7 +204,7 @@ export default class TaskList extends Component {
       <View style={styles.container}>
         <SwipeListView
           useSectionList
-          sections={this.state.tasks}
+          sections={taskManager.tasks}
           renderSectionHeader={({ section: { day } }) => (
             <DayHeader day={day} isTimesheet={this.state.isTimesheet} hidden={this.state.isTimesheet && day !== new Date().toLocaleDateString()} handleHeaderIconPress={this.handleHeaderIconPress} />
           )}

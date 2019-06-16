@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight, KeyboardAvoidingView } from 'react-native';
 import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
-import { SwipeListView } from 'react-native-swipe-list-view';
 import Colors from '../constants/Colors'
 import DayHeader from './DayHeader'
 import ListItem from './ListItem';
 import TaskManager from './TaskManager';
+import KeyboardAwareSwipeListView from './KeyboardAwareSwipeListView';
 
 const taskManager = new TaskManager();
 
@@ -210,7 +210,7 @@ export default class TaskList extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <SwipeListView
+        <KeyboardAwareSwipeListView
           useSectionList
           sections={taskManager.tasks}
           renderSectionHeader={({ section: { day } }) => (
@@ -233,6 +233,8 @@ export default class TaskList extends Component {
           onSwipeValueChange={this.onSwipeValueChange}
           disableLeftSwipe={this.state.isTimesheet}
           disableRightSwipe={this.state.isTimesheet}
+          extraHeight={45}
+          keyboardOpeningTime={0}
         />
       </View>
     );

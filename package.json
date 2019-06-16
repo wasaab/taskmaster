@@ -17,6 +17,7 @@
     "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
     "react-native-calendar-reminders": "^1.1.2",
     "react-native-elements": "^1.1.0",
+    "react-native-keyboard-aware-scroll-view": "^0.8.0",
     "react-native-swipe-list-view": "^1.5.4",
     "react-native-swipe-up-down": "^1.0.7",
     "react-navigation": "^3.0.9"

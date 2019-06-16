@@ -42,6 +42,7 @@ export default class TaskList extends Component {
       blocker: blocker,
       completionPercentage: completionPercentage,
       hoursLogged: 0,
+      isComplete: false,
       date: date.valueOf(),
       remindTime: remindTime
     };
@@ -97,11 +98,13 @@ export default class TaskList extends Component {
     this.closeRow(rowMap, rowKey);
   }
 
-  onRowDidOpen = (rowKey, rowMap, toValue) => {
+  onRowDidOpen = (taskID, rowMap, toValue) => {
     if (toValue < 0) {
-      this.deleteSectionRow(rowMap, rowKey);
+      this.deleteSectionRow(rowMap, taskID);
     } else {
-      // Change background color of this row's percantage badge to show its complete
+      const { task } = taskManager.getTask(taskID);
+
+      task.isComplete = true;
     }
   }
 
@@ -126,11 +129,15 @@ export default class TaskList extends Component {
   handleInputBlur = (taskID, hours, completionPercentage) => {
     const { task } = taskManager.getTask(taskID);
 
-    if (this.state.isTimesheet) {
-      task.hoursLogged = hours;
-      this.props.addToTotalHoursLogged(taskID, hours);
-    } else {
-      task.completionPercentage = completionPercentage;
+    if (task.hoursLogged !== hours || task.completionPercentage !== completionPercentage) {
+      if (this.state.isTimesheet) {
+        task.hoursLogged = hours;
+        this.props.addToTotalHoursLogged(taskID, hours);
+      } else {
+        task.completionPercentage = completionPercentage;
+      }
+
+      taskManager.storeTasks();
     }
 
     // taskManager.updateTask(targetTask);
@@ -148,6 +155,7 @@ export default class TaskList extends Component {
         blocker={data.item.blocker}
         completionPercentage={data.item.completionPercentage}
         isTimesheet={this.state.isTimesheet}
+        isComplete={data.item.isComplete}
         today={data.section.day === new Date().toLocaleDateString()}
         hoursLogged={data.item.hoursLogged}
         currHoursLoggedInputValue={this.props.hoursLogged}

@@ -12,7 +12,7 @@ export default class ListItem extends Component {
         this.navigate = props.navigate;
         this.state = {
             completionPercentage: props.completionPercentage,
-            hoursLogged: props.hoursLogged === 0 ? '' : `${props.hoursLogged}`,
+            hoursLogged: props.hoursLogged,
             activeTask: props.activeTaskKey === props.taskID,
             reminder: props.reminder,
             height: props.reminder ? 80 : 62,
@@ -53,14 +53,10 @@ export default class ListItem extends Component {
         }
 
         this.props.handleTimeInputBadgePress(this.props.taskID);
-        // console.log('press');
-
-        // this.setState({ activeTask: true, badgeValue: this.props.currHoursLoggedInputValue });
     }
 
     handleInputBlur = () => {
-        // console.log('blur');
-        const newBadgeValue = this.props.isTimesheet ? '+' :  `${this.state.completionPercentage}%`;
+        var newBadgeValue = this.determineNewBadgeValue();
 
         this.props.handleInputBlur(this.props.taskID, this.state.hoursLogged, this.state.completionPercentage);
         this.setState({ activeTask: false, badgeValue: newBadgeValue });
@@ -75,10 +71,8 @@ export default class ListItem extends Component {
     }
 
     componentDidUpdate = () => {
-        // console.log('updated');
         if (!this.isActiveTask() || !this.ref) { return; }
 
-        console.log('focus');
         this.ref.focus();
     }
 
@@ -86,16 +80,46 @@ export default class ListItem extends Component {
         return this.props.isTimesheet ? this.state.hoursLogged : this.state.completionPercentage;
     }
 
+    determineNewBadgeValue() {
+        if (!this.props.isTimesheet) {
+            if (this.state.completionPercentage === '') {
+                this.state.completionPercentage = this.props.completionPercentage;
+            }
+
+            return `${this.state.completionPercentage}%`;
+        }
+
+        if (this.state.hoursLogged === '') {
+            this.state.hoursLogged = this.props.hoursLogged;
+        }
+
+        return '+';
+    }
+
+    determineBadgeTextColor() {
+        return !this.props.isTimesheet && this.props.isComplete ?
+            Colors.darkBackground : this.state.completionColor;
+    }
+
+    determineBadgeBackgroundColor = () => {
+        if (this.props.isTimesheet && this.state.activeTask) {
+            return white;
+        } else if (!this.props.isTimesheet && this.props.isComplete) {
+            return this.state.completionColor;
+        }
+
+        return Colors.darkBackground;
+    }
+
     render() {
         this.state.completionColor =  this.determineCompletionColor();
 
-        if (this.props.taskID === '1.4') {
-            // console.log('props:', this.props);
-            // console.log('this.state.hoursLogged:', this.state.hoursLogged);
-        }
-
         return (
-            <View style={[styles.listItem, { backgroundColor: Colors.darkBackground, height: this.state.height, display: this.props.isTimesheet && !this.props.today ? 'none' : 'flex'}]}>
+            <View style={[styles.listItem, {
+                backgroundColor: Colors.darkBackground,
+                height: this.state.height,
+                display: this.props.isTimesheet && !this.props.today ? 'none' : 'flex'
+            }]}>
                 <View style={styles.iconContainer}>
                     {!this.shouldShowInput() &&
                     <Badge
@@ -107,22 +131,20 @@ export default class ListItem extends Component {
                             styles.badge,
                             {
                                 borderColor: this.state.completionColor,
-                                backgroundColor: this.props.isTimesheet && this.state.activeTask ? 'white' : Colors.darkBackground
+                                backgroundColor: this.determineBadgeBackgroundColor()
                             }
                         ]}
-                        textStyle={[styles.badgeText, { color: this.state.completionColor }]}
+                        textStyle={[styles.badgeText, { color: this.determineBadgeTextColor() }]}
                     />
                     }
                   {this.shouldShowInput()  &&
                     <TextInput
-                        // onEndEditing={() => { console.log('triggered just before blur'); }}
                         onFocus={this.handleInputBadgePress}
                         onBlur={this.handleInputBlur}
                         ref={ref => {
                             this.ref = ref
                         }}
                         style={[styles.hoursLoggedInput]}
-                        // onBlur={this.handleHoursLoggedInputFocusLost}
                         onChangeText={this.handleInputChange}
                         value={this.determineInputValue()}
                         keyboardType="numeric"
@@ -173,11 +195,9 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         width: '100%',
         height: 70,
-        // flexGrow: 1,
         fontFamily: 'System',
         fontWeight: '700',
         fontSize: 20,
-        // paddingTop: 5
     },
     badgeContainer: {
         paddingTop: 2,
@@ -222,9 +242,5 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 15,
         fontWeight: '800',
-        // marginTop: 3,
-        // marginBottom: 10,
-        // marginRight: 14,
-        // marginLeft: 11
     }
 });

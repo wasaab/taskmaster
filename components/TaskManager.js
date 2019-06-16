@@ -55,6 +55,7 @@ export default class TaskManager {
                     this.tasks = [
                         {
                           "day": this.getTodayPlusOffset(-1).toLocaleDateString(),
+                          "hoursLogged": 0,
                           "data": [
                             {
                               "key": "193685690",
@@ -62,7 +63,8 @@ export default class TaskManager {
                               "blocker": "React is tricky",
                               "completionPercentage": 35,
                               "hoursLogged": 0,
-                              "date": 1559013078927
+                              "date": 1559013078927,
+                              "isComplete": false
                             },
                             {
                               "key": "-311872935",
@@ -70,7 +72,8 @@ export default class TaskManager {
                               "blocker": "React is tricky",
                               "completionPercentage": 15,
                               "hoursLogged": 0,
-                              "date": 1559013078927
+                              "date": 1559013078927,
+                              "isComplete": false
                             },
                             {
                               "key": "-817431560",
@@ -78,13 +81,14 @@ export default class TaskManager {
                               "blocker": "React is tricky",
                               "completionPercentage": 25,
                               "hoursLogged": 0,
-                              "date": 1559013078927
+                              "date": 1559013078927,
+                              "isComplete": false
                             }
                           ]
                         },
                         {
                           "day": this.getTodayPlusOffset().toLocaleDateString(),
-                          "hoursLogged": '0',
+                          "hoursLogged": 0,
                           "data": [
                             {
                               "key": "-1314165795",
@@ -92,7 +96,8 @@ export default class TaskManager {
                               "blocker": "Clarification needed",
                               "completionPercentage": 40,
                               "hoursLogged": 0,
-                              "date": 1559099478927
+                              "date": 1559099478927,
+                              "isComplete": false
                             },
                             {
                               "key": "694757902",
@@ -100,7 +105,8 @@ export default class TaskManager {
                               "blocker": "Need mockup from Collin",
                               "completionPercentage": 70,
                               "hoursLogged": 0,
-                              "date": 1559099478927
+                              "date": 1559099478927,
+                              "isComplete": false
                             },
                             {
                               "key": "-395792986",
@@ -108,7 +114,8 @@ export default class TaskManager {
                               "blocker": "Clarification needed",
                               "completionPercentage": 83,
                               "hoursLogged": 0,
-                              "date": 1559099478927
+                              "date": 1559099478927,
+                              "isComplete": false
                             },
                             {
                               "key": "513648197",
@@ -116,7 +123,8 @@ export default class TaskManager {
                               "blocker": "Lots of static padding",
                               "completionPercentage": 0,
                               "hoursLogged": 0,
-                              "date": 1559099478927
+                              "date": 1559099478927,
+                              "isComplete": false
                             },
                             {
                               "key": "-1784365333",
@@ -124,12 +132,14 @@ export default class TaskManager {
                               "blocker": "I can't see",
                               "completionPercentage": 27,
                               "hoursLogged": 0,
-                              "date": 1559099478927
+                              "date": 1559099478927,
+                              "isComplete": false
                             }
                           ]
                         },
                         {
                           "day": this.getTodayPlusOffset(1).toLocaleDateString(),
+                          "hoursLogged": 0,
                           "data": [
                             {
                               "key": "-1811633621",
@@ -137,7 +147,8 @@ export default class TaskManager {
                               "blocker": "React is tricky",
                               "completionPercentage": 95,
                               "hoursLogged": 0,
-                              "date": 1559185878927
+                              "date": 1559185878927,
+                              "isComplete": false
                             },
                             {
                               "key": "1977775050",
@@ -145,7 +156,8 @@ export default class TaskManager {
                               "blocker": "React is tricky",
                               "completionPercentage": 15,
                               "hoursLogged": 0,
-                              "date": 1559185878927
+                              "date": 1559185878927,
+                              "isComplete": false
                             },
                             {
                               "key": "1472216425",
@@ -153,7 +165,8 @@ export default class TaskManager {
                               "blocker": "React is tricky",
                               "completionPercentage": 46,
                               "hoursLogged": 0,
-                              "date": 1559185878927
+                              "date": 1559185878927,
+                              "isComplete": false
                             },
                             {
                               "key": "966657800",
@@ -161,7 +174,8 @@ export default class TaskManager {
                               "blocker": "React is tricky",
                               "completionPercentage": 25,
                               "hoursLogged": 0,
-                              "date": 1559185878927
+                              "date": 1559185878927,
+                              "isComplete": false
                             }
                           ]
                         }

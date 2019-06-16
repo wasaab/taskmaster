@@ -31,7 +31,7 @@ export default class TimesheetScreen extends React.Component {
     super(props);
     this.dayIdx = dayIdx;
     this.state = {
-      hoursLogged: taskManager.tasks[this.dayIdx].hoursLogged
+      hoursLogged: `${taskManager.tasks[this.dayIdx].hoursLogged}`
     };
   };
 
@@ -69,7 +69,6 @@ export default class TimesheetScreen extends React.Component {
           <TextInput
             ref='hoursInput'
             style={styles.hoursLoggedInput}
-            // onBlur={this.handleHoursLoggedInputFocusLost}
             onChangeText={this.handleHoursLoggedInputChange}
             value={this.state.hoursLogged}
             keyboardType="numeric"

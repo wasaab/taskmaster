@@ -126,7 +126,18 @@ export default class TaskList extends Component {
     return activeSwipeDirection ? getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side);
   }
 
-  handleInputBlur = (taskID, hours, completionPercentage) => {
+  handleTitleOrBlockerInputBlur = (taskID, title, blocker) => {
+    const { task } = taskManager.getTask(taskID);
+
+    if (task.title === title && task.blocker === blocker) { return; }
+
+    task.title = title;
+    task.blocker = blocker;
+
+    taskManager.storeTasks();
+  }
+
+  handleBadgeInputBlur = (taskID, hours, completionPercentage) => {
     const { task } = taskManager.getTask(taskID);
 
     if (task.hoursLogged !== hours || task.completionPercentage !== completionPercentage) {
@@ -140,7 +151,6 @@ export default class TaskList extends Component {
       taskManager.storeTasks();
     }
 
-    // taskManager.updateTask(targetTask);
     this.setState({ activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
   }
 
@@ -162,7 +172,8 @@ export default class TaskList extends Component {
         activeTaskKey={this.state.activeTaskKey}
         taskID={data.item.key}
         handleTimeInputBadgePress={this.handleTimeInputBadgePress}
-        handleInputBlur={this.handleInputBlur}
+        handleBadgeInputBlur={this.handleBadgeInputBlur}
+        handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}
       />
     </TouchableHighlight>;
   }

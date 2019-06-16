@@ -11,6 +11,8 @@ export default class ListItem extends Component {
         // console.log('item props:', props);
         this.navigate = props.navigate;
         this.state = {
+            title: props.title,
+            blocker: props.blocker,
             completionPercentage: props.completionPercentage,
             hoursLogged: props.hoursLogged,
             activeTask: props.activeTaskKey === props.taskID,
@@ -55,19 +57,31 @@ export default class ListItem extends Component {
         this.props.handleTimeInputBadgePress(this.props.taskID);
     }
 
-    handleInputBlur = () => {
+    handleBadgeInputBlur = () => {
         var newBadgeValue = this.determineNewBadgeValue();
 
-        this.props.handleInputBlur(this.props.taskID, this.state.hoursLogged, this.state.completionPercentage);
+        this.props.handleBadgeInputBlur(this.props.taskID, this.state.hoursLogged, this.state.completionPercentage);
         this.setState({ activeTask: false, badgeValue: newBadgeValue });
     }
 
-    handleInputChange = (newValue) => {
+    handleBadgeInputChange = (newValue) => {
         if (this.props.isTimesheet) {
             this.setState({ hoursLogged: newValue });
         } else {
             this.setState({ completionPercentage: newValue });
         }
+    }
+
+    handleTitleOrBlockerInputBlur = () => {
+        this.props.handleTitleOrBlockerInputBlur(this.props.taskID, this.state.title, this.state.blocker);
+    }
+
+    handleTitleInputChange = (newValue) => {
+        this.setState({ title: newValue });
+    }
+
+    handleBlockerInputChange = (newValue) => {
+        this.setState({ blocker: newValue });
     }
 
     componentDidUpdate = () => {
@@ -140,12 +154,12 @@ export default class ListItem extends Component {
                   {this.shouldShowInput()  &&
                     <TextInput
                         onFocus={this.handleInputBadgePress}
-                        onBlur={this.handleInputBlur}
+                        onBlur={this.handleBadgeInputBlur}
                         ref={ref => {
                             this.ref = ref
                         }}
                         style={[styles.hoursLoggedInput]}
-                        onChangeText={this.handleInputChange}
+                        onChangeText={this.handleBadgeInputChange}
                         value={this.determineInputValue()}
                         keyboardType="numeric"
                         clearTextOnFocus={true}
@@ -156,12 +170,20 @@ export default class ListItem extends Component {
                      />
                     }
                     <Icon iconStyle={[styles.timeIcon, { display: this.state.reminder ? 'flex' : 'none' }]} name='clockcircleo' type="antdesign"/>
-
-
                 </View>
                 <View style={styles.listItemTextContainer}>
-                    <Text style={[styles.taskTitle]}>{this.props.title}</Text>
-                    <Text style={[styles.blocker]}>{this.props.blocker}</Text>
+                    <TextInput
+                        style={[styles.taskTitle]}
+                        onChangeText={this.handleTitleInputChange}
+                        onBlur={this.handleTitleOrBlockerInputBlur}>
+                        {this.state.title}
+                    </TextInput>
+                    <TextInput
+                        style={[styles.blocker]}
+                        onChangeText={this.handleBlockerInputChange}
+                        onBlur={this.handleTitleOrBlockerInputBlur}>
+                        {this.state.blocker}
+                    </TextInput>
                 </View>
             </View>
         );

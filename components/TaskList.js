@@ -20,7 +20,7 @@ export default class TaskList extends Component {
       activeTaskKey: '',
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
-      refreshing: false,
+      creatingTask: false,
     };
 
     this.taskIdToActiveSwipeDirection = {};
@@ -40,7 +40,7 @@ export default class TaskList extends Component {
       key: taskManager.getTaskId({ title: title, date: date.valueOf() }),
       title: title,
       blocker: blocker,
-      completionPercentage: completionPercentage,
+      completionPercentage: completionPercentage || 0,
       hoursLogged: 0,
       isComplete: false,
       date: date.valueOf(),
@@ -68,15 +68,6 @@ export default class TaskList extends Component {
 
   }
 
-  //Todo: Use this for refresh behavior in sectionlist?
-  refreshControl = () => {
-    return (
-      <RefreshControl
-        refreshing={this.state.refreshing}
-        onRefresh={this.onRefresh} />
-    )
-  }
-
   closeRow = (rowMap, rowKey) => {
     if (rowMap[rowKey]) {
       rowMap[rowKey].closeRow();
@@ -94,7 +85,6 @@ export default class TaskList extends Component {
   }
 
   onRowOpen = (rowKey, rowMap, toValue) => {
-
     this.closeRow(rowMap, rowKey);
   }
 
@@ -218,6 +208,19 @@ export default class TaskList extends Component {
     });
   }
 
+  createTask = () => {
+    this.setState({ creatingTask: true });
+
+    setTimeout(() => {
+      const task = this.buildTask('New Task', '');
+      const today = new Date().toLocaleDateString();
+
+      this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
+      taskManager.tasks.find((dayTasks) => dayTasks.day === today).data.unshift(task);
+      this.setState({ creatingTask: false });
+    }, 500)
+  }
+
   render() {
     return (
       <View style={styles.container}>
@@ -246,6 +249,8 @@ export default class TaskList extends Component {
           disableRightSwipe={this.state.isTimesheet}
           extraHeight={45}
           keyboardOpeningTime={0}
+          onRefresh={this.createTask}
+          refreshing={this.state.creatingTask}
         />
       </View>
     );

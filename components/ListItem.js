@@ -92,6 +92,12 @@ export default class ListItem extends Component {
         }
     }
 
+    handleTitleSubmit = () => {
+        if (!this.blockerRef) { return; }
+
+        this.blockerRef.focus();
+    }
+
     componentDidUpdate = () => {
         if (!this.isActiveTask() || !this.ref) { return; }
 
@@ -200,11 +206,15 @@ export default class ListItem extends Component {
                             editable={this.state.editable}
                             pointerEvents={this.state.editable ? 'auto' : 'none'}
                             style={[styles.taskTitle]}
+                            onSubmitEditing={this.handleTitleSubmit}
                             onChangeText={this.handleTitleInputChange}
                             onBlur={this.handleTitleOrBlockerInputBlur}>
                             {this.state.title}
                         </TextInput>
                         <TextInput
+                            ref={(ref) => {
+                                this.blockerRef = ref;
+                            }}
                             onFocus={this.handleTitleOrBlockerPress}
                             editable={this.state.editable}
                             pointerEvents={this.state.editable ? 'auto' : 'none'}

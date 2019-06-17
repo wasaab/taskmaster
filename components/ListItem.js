@@ -196,10 +196,10 @@ export default class ListItem extends Component {
                         style={[styles.hoursLoggedInput]}
                         onChangeText={this.handleBadgeInputChange}
                         value={this.determineInputValue()}
-                        keyboardType="numeric"
+                        keyboardType={this.props.isTimesheet ? 'numeric' : 'number-pad'}
                         clearTextOnFocus={true}
                         autofocus={true}
-                        placeholder="0.00"
+                        placeholder={this.props.isTimesheet ? '0.00' : '0'}
                         keyboardAppearance="dark"
                         maxLength={5}
                      />

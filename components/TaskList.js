@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight, KeyboardAvoidingView } from 'react-native';
 import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
 import Colors from '../constants/Colors'
 import DayHeader from './DayHeader'
@@ -20,7 +20,7 @@ export default class TaskList extends Component {
       activeTaskKey: '',
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
-      creatingTask: false,
+      creatingTask: false
     };
 
     this.taskIdToActiveSwipeDirection = {};
@@ -33,14 +33,12 @@ export default class TaskList extends Component {
     });
   }
 
-  buildTask(title, blocker, completionPercentage, date, remindTime) {
-    date = date || new Date();
-
+  buildTask(title='', blocker='', completionPercentage='', date=new Date(), remindTime) {
     return {
       key: taskManager.getTaskId({ title: title, date: date.valueOf() }),
       title: title,
       blocker: blocker,
-      completionPercentage: completionPercentage || 0,
+      completionPercentage: completionPercentage,
       hoursLogged: 0,
       isComplete: false,
       date: date.valueOf(),
@@ -49,11 +47,8 @@ export default class TaskList extends Component {
   }
 
   navigateBack = () => {
-    this.navigate(this.state.pageRenderedIn === 'TaskList' ? 'Timesheet' : 'TaskList');
-  }
-
-  onRefresh = () => {
-    this.navigateBack();
+    this.navigate(this.state.pageRenderedIn === 'TaskList' ?
+      'Timesheet' : 'TaskList');
   }
 
   handleHeaderIconPress = () => {
@@ -62,10 +57,6 @@ export default class TaskList extends Component {
 
   determineDayDisplayStyle = () => {
     return { display: this.state.isTimesheet ? 'none' : 'flex' };
-  }
-
-  componentDidMount = () => {
-
   }
 
   closeRow = (rowMap, rowKey) => {
@@ -113,7 +104,8 @@ export default class TaskList extends Component {
   determineRowColor = (taskID, side) => {
     const activeSwipeDirection = this.taskIdToActiveSwipeDirection[taskID];
 
-    return activeSwipeDirection ? getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side);
+    return activeSwipeDirection ?
+     getSwipeDirectionColor(activeSwipeDirection) : getSwipeDirectionColor(side);
   }
 
   handleTitleOrBlockerInputBlur = (taskID, title, blocker) => {
@@ -149,8 +141,7 @@ export default class TaskList extends Component {
   }
 
   renderTaskItem = (data, rowMap) => {
-    return <TouchableHighlight onPress={_ => console.log('You touched me')} style={styles.rowFront} underlayColor={'#AAA'}>
-      <ListItem
+    return <ListItem
         title={data.item.title}
         blocker={data.item.blocker}
         completionPercentage={data.item.completionPercentage}
@@ -163,9 +154,7 @@ export default class TaskList extends Component {
         taskID={data.item.key}
         handleTimeInputBadgePress={this.handleTimeInputBadgePress}
         handleBadgeInputBlur={this.handleBadgeInputBlur}
-        handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}
-      />
-    </TouchableHighlight>;
+        handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}/>
   }
 
   renderSwipeItems = (data, rowMap) => {
@@ -180,7 +169,10 @@ export default class TaskList extends Component {
           <Icon size={28} color='white' name="check-circle" type="materialicons" />
         </Animated.View>
       </TouchableOpacity>
-      <TouchableOpacity style={[styles.rightSwipeItem, { backgroundColor: this.determineRowColor(data.item.key, 'right') }]} onPress={_ => this.deleteSectionRow(rowMap, data.item.key)}>
+      <TouchableOpacity
+        style={[styles.rightSwipeItem,
+            { backgroundColor: this.determineRowColor(data.item.key, 'right') }]}
+        onPress={_ => this.deleteSectionRow(rowMap, data.item.key)}>
         <Animated.View style={{
           opacity: this.getOpacityFromSwipeVal(data.item.key),
           transform: [{
@@ -212,13 +204,23 @@ export default class TaskList extends Component {
     this.setState({ creatingTask: true });
 
     setTimeout(() => {
-      const task = this.buildTask('New Task', '');
+      const task = this.buildTask();
       const today = new Date().toLocaleDateString();
 
       this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
       taskManager.tasks.find((dayTasks) => dayTasks.day === today).data.unshift(task);
-      this.setState({ creatingTask: false });
+      this.setState({ creatingTask: false, activeTaskKey: task.key });
     }, 500)
+  }
+
+  createTaskControl = () => {
+    return (
+      <RefreshControl
+        title='Create task'
+        titleColor='white'
+        onRefresh={this.createTask}
+        refreshing={this.state.creatingTask}/>
+    )
   }
 
   render() {
@@ -228,7 +230,11 @@ export default class TaskList extends Component {
           useSectionList
           sections={taskManager.tasks}
           renderSectionHeader={({ section: { day } }) => (
-            <DayHeader day={day} isTimesheet={this.state.isTimesheet} hidden={this.state.isTimesheet && day !== new Date().toLocaleDateString()} handleHeaderIconPress={this.handleHeaderIconPress} />
+            <DayHeader
+              day={day}
+              isTimesheet={this.state.isTimesheet}
+              hidden={this.state.isTimesheet && day !== new Date().toLocaleDateString()}
+              handleHeaderIconPress={this.handleHeaderIconPress}/>
           )}
           renderItem={this.renderTaskItem}
           renderHiddenItem={this.renderSwipeItems}
@@ -249,8 +255,8 @@ export default class TaskList extends Component {
           disableRightSwipe={this.state.isTimesheet}
           extraHeight={45}
           keyboardOpeningTime={0}
-          onRefresh={this.createTask}
-          refreshing={this.state.creatingTask}
+          enableResetScrollToCoords={false}
+          refreshControl={this.createTaskControl()}
         />
       </View>
     );
@@ -261,9 +267,6 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.darkBackground,
     flex: 1
-  },
-  rowFront: {
-
   },
   rowBack: {
     alignItems: 'center',

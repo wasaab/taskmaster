@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, TextInput, View, Platform } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Platform, TouchableWithoutFeedback } from 'react-native';
 import { Badge, Icon } from 'react-native-elements'
 import Colors from '../constants/Colors'
 
@@ -11,6 +11,8 @@ export default class ListItem extends Component {
         // console.log('item props:', props);
         this.navigate = props.navigate;
         this.state = {
+            editing: false,
+            editable: false,
             title: props.title,
             blocker: props.blocker,
             completionPercentage: props.completionPercentage,
@@ -47,11 +49,15 @@ export default class ListItem extends Component {
         return this.isActiveTask() || this.props.isTimesheet && Number(this.state.hoursLogged) > 0;
     }
 
+    handleTitleOrBlockerPress = () => {
+        this.setState({ editing: true });
+    }
+
     handleInputBadgePress = () => {
         if (this.props.isTimesheet) {
             this.setState({ hoursLogged: '' });
         } else {
-            this.setState({ completionPercentage: '' });
+            this.setState({ completionPercentage: '', editing: true });
         }
 
         this.props.handleTimeInputBadgePress(this.props.taskID);
@@ -62,17 +68,11 @@ export default class ListItem extends Component {
 
         this.props.handleBadgeInputBlur(this.props.taskID, this.state.hoursLogged, this.state.completionPercentage);
         this.setState({ activeTask: false, badgeValue: newBadgeValue });
-    }
-
-    handleBadgeInputChange = (newValue) => {
-        if (this.props.isTimesheet) {
-            this.setState({ hoursLogged: newValue });
-        } else {
-            this.setState({ completionPercentage: newValue });
-        }
+        this.updateEditState();
     }
 
     handleTitleOrBlockerInputBlur = () => {
+        this.updateEditState();
         this.props.handleTitleOrBlockerInputBlur(this.props.taskID, this.state.title, this.state.blocker);
     }
 
@@ -84,6 +84,14 @@ export default class ListItem extends Component {
         this.setState({ blocker: newValue });
     }
 
+    handleBadgeInputChange = (newValue) => {
+        if (this.props.isTimesheet) {
+            this.setState({ hoursLogged: newValue });
+        } else {
+            this.setState({ completionPercentage: newValue });
+        }
+    }
+
     componentDidUpdate = () => {
         if (!this.isActiveTask() || !this.ref) { return; }
 
@@ -92,6 +100,17 @@ export default class ListItem extends Component {
 
     determineInputValue = () => {
         return this.props.isTimesheet ? this.state.hoursLogged : this.state.completionPercentage;
+    }
+
+    updateEditState() {
+        this.setState({ editing: false });
+        setTimeout(() => {
+            if (this.state.editing) {
+                this.setState({ editing: false });
+            } else {
+                this.setState({ editable: false });
+            }
+        }, 300);
     }
 
     determineNewBadgeValue() {
@@ -155,8 +174,8 @@ export default class ListItem extends Component {
                     <TextInput
                         onFocus={this.handleInputBadgePress}
                         onBlur={this.handleBadgeInputBlur}
-                        ref={ref => {
-                            this.ref = ref
+                        ref={(ref) => {
+                            this.ref = ref;
                         }}
                         style={[styles.hoursLoggedInput]}
                         onChangeText={this.handleBadgeInputChange}
@@ -171,20 +190,31 @@ export default class ListItem extends Component {
                     }
                     <Icon iconStyle={[styles.timeIcon, { display: this.state.reminder ? 'flex' : 'none' }]} name='clockcircleo' type="antdesign"/>
                 </View>
-                <View style={styles.listItemTextContainer}>
-                    <TextInput
-                        style={[styles.taskTitle]}
-                        onChangeText={this.handleTitleInputChange}
-                        onBlur={this.handleTitleOrBlockerInputBlur}>
-                        {this.state.title}
-                    </TextInput>
-                    <TextInput
-                        style={[styles.blocker]}
-                        onChangeText={this.handleBlockerInputChange}
-                        onBlur={this.handleTitleOrBlockerInputBlur}>
-                        {this.state.blocker}
-                    </TextInput>
-                </View>
+                <TouchableWithoutFeedback onPress={() => { this.setState({ editable: true }); }}>
+                    <View style={styles.listItemTextContainer}>
+                        <TextInput
+                            // ref={(ref) => {
+                            //     this.titleRef = ref;
+                            // }}
+                            onFocus={this.handleTitleOrBlockerPress}
+                            editable={this.state.editable}
+                            pointerEvents={this.state.editable ? 'auto' : 'none'}
+                            style={[styles.taskTitle]}
+                            onChangeText={this.handleTitleInputChange}
+                            onBlur={this.handleTitleOrBlockerInputBlur}>
+                            {this.state.title}
+                        </TextInput>
+                        <TextInput
+                            onFocus={this.handleTitleOrBlockerPress}
+                            editable={this.state.editable}
+                            pointerEvents={this.state.editable ? 'auto' : 'none'}
+                            style={[styles.blocker]}
+                            onChangeText={this.handleBlockerInputChange}
+                            onBlur={this.handleTitleOrBlockerInputBlur}>
+                            {this.state.blocker}
+                        </TextInput>
+                    </View>
+                </TouchableWithoutFeedback>
             </View>
         );
     };

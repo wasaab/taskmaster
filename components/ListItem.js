@@ -98,6 +98,16 @@ export default class ListItem extends Component {
         this.blockerRef.focus();
     }
 
+    handleTouchContainerPress = () => {
+        this.setState({ editable: true });
+
+        setTimeout(() => {
+            if (this.state.editing) { return; }
+
+            this.setState({ editable: false });
+        }, 700);
+    }
+
     componentDidUpdate = () => {
         if (!this.isActiveTask() || !this.ref) { return; }
 
@@ -196,7 +206,7 @@ export default class ListItem extends Component {
                     }
                     <Icon iconStyle={[styles.timeIcon, { display: this.state.reminder ? 'flex' : 'none' }]} name='clockcircleo' type="antdesign"/>
                 </View>
-                <TouchableWithoutFeedback onPress={() => { this.setState({ editable: true }); }}>
+                <TouchableWithoutFeedback onPress={this.handleTouchContainerPress}>
                     <View style={styles.listItemTextContainer}>
                         <TextInput
                             // ref={(ref) => {

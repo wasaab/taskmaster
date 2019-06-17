@@ -12,7 +12,7 @@ export default class ListItem extends Component {
         this.navigate = props.navigate;
         this.state = {
             editing: false,
-            editable: false,
+            editable: props.title === '',
             title: props.title,
             blocker: props.blocker,
             completionPercentage: props.completionPercentage,

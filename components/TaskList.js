@@ -33,12 +33,12 @@ export default class TaskList extends Component {
     });
   }
 
-  buildTask(title='', blocker='', completionPercentage='', date=new Date(), remindTime) {
+  buildTask(title='', blocker='', date=new Date(), remindTime) {
     return {
       key: taskManager.getTaskId({ title: title, date: date.valueOf() }),
       title: title,
       blocker: blocker,
-      completionPercentage: completionPercentage,
+      completionPercentage: 0,
       hoursLogged: 0,
       isComplete: false,
       date: date.valueOf(),
@@ -149,7 +149,6 @@ export default class TaskList extends Component {
         isComplete={data.item.isComplete}
         today={data.section.day === new Date().toLocaleDateString()}
         hoursLogged={data.item.hoursLogged}
-        currHoursLoggedInputValue={this.props.hoursLogged}
         activeTaskKey={this.state.activeTaskKey}
         taskID={data.item.key}
         handleTimeInputBadgePress={this.handleTimeInputBadgePress}

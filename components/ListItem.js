@@ -20,7 +20,7 @@ export default class ListItem extends Component {
             activeTask: props.activeTaskKey === props.taskID,
             reminder: props.reminder,
             height: props.reminder ? 80 : 62,
-            badgeValue: props.activeTaskKey === props.taskID ? `${props.currHoursLoggedInputValue}` : props.isTimesheet ? '+' : `${props.completionPercentage}%`,
+            badgeValue: props.isTimesheet ? '+' : `${props.completionPercentage}%`,
             completionColor: 'gray'
         };
     }
@@ -88,6 +88,10 @@ export default class ListItem extends Component {
         if (this.props.isTimesheet) {
             this.setState({ hoursLogged: newValue });
         } else {
+            if (newValue > 100) {
+                newValue = 100;
+            }
+
             this.setState({ completionPercentage: newValue });
         }
     }
@@ -109,13 +113,18 @@ export default class ListItem extends Component {
     }
 
     componentDidUpdate = () => {
-        if (!this.isActiveTask() || !this.ref) { return; }
+        if (!this.isActiveTask() || !this.badgeInputRef) { return; }
 
-        this.ref.focus();
+        this.badgeInputRef.focus();
     }
 
     determineInputValue = () => {
-        return this.props.isTimesheet ? this.state.hoursLogged : this.state.completionPercentage;
+        //If newly created task
+        if (this.props.title === '' && this.state.hoursLogged === 0 && this.state.completionPercentage === 0) {
+             return '';
+        }
+
+        return this.props.isTimesheet ? `${this.state.hoursLogged}` : `${this.state.completionPercentage}`;
     }
 
     updateEditState() {
@@ -160,58 +169,63 @@ export default class ListItem extends Component {
         return Colors.darkBackground;
     }
 
+    getBadgeInput = () => {
+        return (
+            <View style={styles.iconContainer}>
+                {!this.shouldShowInput() &&
+                <Badge
+                    onPress={this.handleInputBadgePress}
+                    value={this.state.badgeValue}
+                    status="primary"
+                    containerStyle={styles.badgeContainer}
+                    badgeStyle={[
+                        styles.badge,
+                        {
+                            borderColor: this.state.completionColor,
+                            backgroundColor: this.determineBadgeBackgroundColor()
+                        }
+                    ]}
+                    textStyle={[styles.badgeText, { color: this.determineBadgeTextColor() }]}
+                />}
+                {this.shouldShowInput() &&
+                <TextInput
+                    onFocus={this.handleInputBadgePress}
+                    onBlur={this.handleBadgeInputBlur}
+                    ref={(ref) => {
+                        this.badgeInputRef = ref;
+                    }}
+                    style={[styles.hoursLoggedInput]}
+                    onChangeText={this.handleBadgeInputChange}
+                    value={this.determineInputValue()}
+                    keyboardType={this.props.isTimesheet ? 'numeric' : 'number-pad'}
+                    clearTextOnFocus={true}
+                    autofocus={true}
+                    placeholder={this.props.isTimesheet ? `${this.props.hoursLogged}` : `${this.props.completionPercentage}`}
+                    keyboardAppearance="dark"
+                    maxLength={4}
+                />}
+                {this.state.reminder && <Icon iconStyle={[styles.timeIcon, { display: 'flex' }]} name='clockcircleo' type="antdesign"/>}
+            </View>
+        );
+    }
+
     render() {
-        this.state.completionColor =  this.determineCompletionColor();
+        if (this.props.isTimesheet && !this.props.today) { return null; }
+
+        this.state.completionColor = this.determineCompletionColor();
 
         return (
             <View style={[styles.listItem, {
                 backgroundColor: Colors.darkBackground,
                 height: this.state.height,
-                display: this.props.isTimesheet && !this.props.today ? 'none' : 'flex'
+                display: 'flex'
             }]}>
-                <View style={styles.iconContainer}>
-                    {!this.shouldShowInput() &&
-                    <Badge
-                        onPress={this.handleInputBadgePress}
-                        value={this.state.badgeValue}
-                        status="primary"
-                        containerStyle={styles.badgeContainer}
-                        badgeStyle={[
-                            styles.badge,
-                            {
-                                borderColor: this.state.completionColor,
-                                backgroundColor: this.determineBadgeBackgroundColor()
-                            }
-                        ]}
-                        textStyle={[styles.badgeText, { color: this.determineBadgeTextColor() }]}
-                    />
-                    }
-                  {this.shouldShowInput()  &&
-                    <TextInput
-                        onFocus={this.handleInputBadgePress}
-                        onBlur={this.handleBadgeInputBlur}
-                        ref={(ref) => {
-                            this.ref = ref;
-                        }}
-                        style={[styles.hoursLoggedInput]}
-                        onChangeText={this.handleBadgeInputChange}
-                        value={this.determineInputValue()}
-                        keyboardType={this.props.isTimesheet ? 'numeric' : 'number-pad'}
-                        clearTextOnFocus={true}
-                        autofocus={true}
-                        placeholder={this.props.isTimesheet ? '0.00' : '0'}
-                        keyboardAppearance="dark"
-                        maxLength={5}
-                     />
-                    }
-                    <Icon iconStyle={[styles.timeIcon, { display: this.state.reminder ? 'flex' : 'none' }]} name='clockcircleo' type="antdesign"/>
-                </View>
+                {this.getBadgeInput()}
                 <TouchableWithoutFeedback onPress={this.handleTouchContainerPress}>
                     <View style={styles.listItemTextContainer}>
                         <TextInput
-                            // ref={(ref) => {
-                            //     this.titleRef = ref;
-                            // }}
+                            // multiline
+                            // numberOfLines={2}
                             onFocus={this.handleTitleOrBlockerPress}
                             editable={this.state.editable}
                             pointerEvents={this.state.editable ? 'auto' : 'none'}

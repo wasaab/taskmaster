@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight, KeyboardAvoidingView } from 'react-native';
 import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
+import { Haptic } from 'expo'
 import Colors from '../constants/Colors'
 import DayHeader from './DayHeader'
 import ListItem from './ListItem';
@@ -52,6 +53,7 @@ export default class TaskList extends Component {
   }
 
   handleHeaderIconPress = () => {
+    Haptic.impact('medium'); //Todo: see if collin prefers impact heavy or selection
     this.navigateBack();
   }
 

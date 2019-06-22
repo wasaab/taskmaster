@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, TextInput, View, Platform, TouchableWithoutFeedback } from 'react-native';
 import { Badge, Icon } from 'react-native-elements'
+import { Haptic } from 'expo'
 import Colors from '../constants/Colors'
 
 export default class ListItem extends Component {
@@ -50,10 +51,12 @@ export default class ListItem extends Component {
     }
 
     handleTitleOrBlockerPress = () => {
+        Haptic.selection(); //Todo: see if collin prefers impact medium or heavy
         this.setState({ editing: true });
     }
 
     handleInputBadgePress = () => {
+        Haptic.impact('heavy'); //Todo: see if collin prefers impact medium or selection
         if (this.props.isTimesheet) {
             this.setState({ hoursLogged: '' });
         } else {

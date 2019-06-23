@@ -16,7 +16,6 @@ export default class TaskList extends Component {
     console.log('reconstructing task list');
     super(props);
 
-    this.navigate = props.navigate;
     this.state = {
       activeTaskKey: '',
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
@@ -48,7 +47,7 @@ export default class TaskList extends Component {
   }
 
   navigateBack = () => {
-    this.navigate(this.state.pageRenderedIn === 'TaskList' ?
+    this.props.navigate(this.state.pageRenderedIn === 'TaskList' ?
       'Timesheet' : 'TaskList');
   }
 
@@ -155,7 +154,8 @@ export default class TaskList extends Component {
         taskID={data.item.key}
         handleTimeInputBadgePress={this.handleTimeInputBadgePress}
         handleBadgeInputBlur={this.handleBadgeInputBlur}
-        handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}/>
+        handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}
+        navigate={this.props.navigate}/>
   }
 
   renderSwipeItems = (data, rowMap) => {

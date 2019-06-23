@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, View, DatePickerIOS, Switch, Picker } from 'react-native';
+import { StyleSheet, Text, View, DatePickerIOS, Switch, Picker, Modal } from 'react-native';
 import RNCalendarReminders from 'react-native-calendar-reminders';
+import RNPickerSelect from 'react-native-picker-select';
+import DatePicker from 'react-native-datepicker';
 import Colors from '../constants/Colors'
 import ListItem  from './ListItem';
 
@@ -66,25 +68,72 @@ export default class Reminder extends Component {
                 </View>
                 <View style={styles.rowFlexContainer}>
                     <Text style={[styles.leftContent, styles.alertMsg, styles.text]}>Alert</Text>
-                    <Text style={[styles.remindTimeText, styles.text]}>{this.formatRemindTime()}</Text>
+                    {/* <Text style={[styles.remindTimeText, styles.text]}>{this.formatRemindTime()}</Text> */}
+                    <DatePicker
+                        style={styles.remindTimePicker}
+                        date={this.state.remindTime}
+                        mode="datetime"
+                        placeholder="select date"
+                        format="ddd M/D/YY, h:mm a"
+
+                        confirmBtnText="Confirm"
+                        cancelBtnText="Cancel"
+                        customStyles={{
+                            dateIcon: {
+                                position: 'absolute',
+                                left: 0,
+                                top: 4,
+                                marginLeft: 0
+                            },
+                            dateTouchBody: {
+                                width: 220
+                            },
+                            dateInput: {
+                                width: '100%',
+                                marginLeft: 36
+                            },
+                            dateText: {
+                                width: '100%',
+                                color: 'white',
+                                textAlign: 'center',
+                                fontFamily: 'System',
+                                fontWeight: '600',
+                                fontSize: 16
+                            },
+                            datePicker: {
+                                backgroundColor: 'rgb(60,60,60)',
+                                borderTopWidth: 0
+                            },
+                            datePickerCon: {
+                                backgroundColor: Colors.darkBackground
+                            },
+                            btnTextCancel: {
+                                color: 'white'
+                            }
+                        }}
+                        onDateChange={this.handleRemindTimeChange}
+                    />
                 </View>
-                <DatePickerIOS
-                    style={styles.remindTimePicker}
-                    date={this.state.remindTime}
-                    onDateChange={this.handleRemindTimeChange}
-                />
                 <View style={styles.rowFlexContainer}>
-                    <Text style={[styles.leftContent, styles.remindMsg, styles.text]}>Repeat</Text>
-                    <Text style={[styles.text, styles.remindToggle]}>{this.state.repeatPeriod}</Text>
+                    <Text style={[styles.leftContent, { flex: 0.93 }, styles.text]}>Repeat</Text>
+                    <RNPickerSelect
+                        style={{ modalViewMiddle: { backgroundColor: 'rgb(25,25,25)', borderTopWidth: 0 }, chevron: { display: 'none'} }}
+                        textInputProps={{ style: styles.recurrenceText }}
+                        pickerProps={{ style: { backgroundColor: 'rgb(60,60,60)' } }}
+                        // hideDoneBar={true}
+                        modalProps={{ style: { backgroundColor: Colors.darkBackground } }}
+                        items={[
+                            { label: 'Never', value: 'Never'},
+                            { label: 'Daily', value: 'Daily'},
+                            { label: 'Weekly', value: 'Weekly'},
+                            { label: 'Monthly', value: 'Monthly'},
+                            { label: 'Yearly', value: 'Yearly'},
+                        ]}
+                        onValueChange={this.handleRepeatPeriodChange}
+                        value={this.state.repeatPeriod}
+                        useNativeAndroidPickerStyle={false}
+                    />
                 </View>
-                {/* todo: use a picker solution from here: https://stackoverflow.com/questions/41181683/react-native-ios-picker-is-always-open */}
-                <Picker style={{ height: 20, marginBottom: 100 }} itemStyle={{ color: 'white'}} selectedValue={this.state.repeatPeriod} onValueChange={this.handleRepeatPeriodChange}>
-                    <Picker.Item label="Never" value="Never" />
-                    <Picker.Item label="Daily" value="Daily" />
-                    <Picker.Item label="Weekly" value="Weekly" />
-                    <Picker.Item label="Monthly" value="Monthly" />
-                    <Picker.Item label="Yearly" value="Yearly" />
-                </Picker>
             </View>
         );
     };
@@ -95,13 +144,12 @@ const styles = StyleSheet.create({
         // flex: 1,
         display: 'flex',
         justifyContent: 'center',
-        backgroundColor: 'rgb(60,60,60)'
+        backgroundColor: Colors.darkBackground
     },
     remindTimePicker: {
-
-    },
-    remindTimeText: {
-        flex: 0.55,
+        // flex: 0.55,
+        // width: '100%',
+        height: 70
     },
     rowFlexContainer: {
         display: 'flex',
@@ -114,7 +162,7 @@ const styles = StyleSheet.create({
         flex: 0.8,
     },
     alertMsg: {
-        flex: 0.45,
+        flex: 0.55,
     },
     leftContent: {
         paddingLeft: 15
@@ -123,6 +171,13 @@ const styles = StyleSheet.create({
         color: 'white',
         width: '100%',
         height: 70,
+        fontFamily: 'System',
+        fontWeight: '600',
+        fontSize: 18,
+    },
+    recurrenceText: {
+        color: 'white',
+        width: '100%',
         fontFamily: 'System',
         fontWeight: '600',
         fontSize: 18,

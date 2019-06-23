@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { StyleSheet, Text, TextInput, View, Platform, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, Text, TextInput, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import { Badge, Icon } from 'react-native-elements'
 import { Haptic } from 'expo'
 import Colors from '../constants/Colors'
@@ -10,7 +10,6 @@ export default class ListItem extends Component {
 
         // this.handleRemindTimeChange = this.handleRemindTimeChange.bind(this);
         // console.log('item props:', props);
-        this.navigate = props.navigate;
         this.state = {
             editing: false,
             editable: props.title === '',
@@ -48,6 +47,10 @@ export default class ListItem extends Component {
 
     shouldShowInput = () => {
         return this.isActiveTask() || this.props.isTimesheet && Number(this.state.hoursLogged) > 0;
+    }
+
+    handleLongPress = () => {
+        this.props.navigate('Reminder');
     }
 
     handleTitleOrBlockerPress = () => {
@@ -218,13 +221,13 @@ export default class ListItem extends Component {
         this.state.completionColor = this.determineCompletionColor();
 
         return (
-            <View style={[styles.listItem, {
-                backgroundColor: Colors.darkBackground,
-                height: this.state.height,
-                display: 'flex'
-            }]}>
-                {this.getBadgeInput()}
-                <TouchableWithoutFeedback onPress={this.handleTouchContainerPress}>
+            <TouchableHighlight onPress={this.handleTouchContainerPress} underlayColor='rgb(60, 60, 60)' onLongPress={this.handleLongPress}>
+                <View style={[styles.listItem, {
+                    backgroundColor: Colors.darkBackground,
+                    height: this.state.height,
+                    display: 'flex'
+                }]}>
+                    {this.getBadgeInput()}
                     <View style={styles.listItemTextContainer}>
                         <TextInput
                             // multiline
@@ -251,8 +254,8 @@ export default class ListItem extends Component {
                             {this.state.blocker}
                         </TextInput>
                     </View>
-                </TouchableWithoutFeedback>
-            </View>
+                </View>
+            </TouchableHighlight>
         );
     };
 }

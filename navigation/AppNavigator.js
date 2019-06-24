@@ -1,7 +1,6 @@
 import React from 'react';
 import { createAppContainer, createStackNavigator } from 'react-navigation';
 
-// import MainTabNavigator from './MainTabNavigator';
 import TaskListScreen from '../screens/TaskListScreen';
 import TimesheetScreen from '../screens/TimesheetScreen';
 import ReminderScreen from '../screens/ReminderScreen';

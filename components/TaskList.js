@@ -47,12 +47,12 @@ export default class TaskList extends Component {
   }
 
   navigateBack = () => {
-    this.props.navigate(this.state.pageRenderedIn === 'TaskList' ?
+    this.props.navigation.navigate(this.state.pageRenderedIn === 'TaskList' ?
       'Timesheet' : 'TaskList');
   }
 
   handleHeaderIconPress = () => {
-    Haptic.impact('medium'); //Todo: see if collin prefers impact heavy or selection
+    Haptic.impact('heavy');
     this.navigateBack();
   }
 
@@ -155,7 +155,7 @@ export default class TaskList extends Component {
         handleTimeInputBadgePress={this.handleTimeInputBadgePress}
         handleBadgeInputBlur={this.handleBadgeInputBlur}
         handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}
-        navigate={this.props.navigate}/>
+        navigation={this.props.navigation}/>
   }
 
   renderSwipeItems = (data, rowMap) => {

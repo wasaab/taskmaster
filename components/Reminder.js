@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, DatePickerIOS, Switch, Picker, Modal } from 'react-native';
+import { Icon } from 'react-native-elements';
 import RNCalendarReminders from 'react-native-calendar-reminders';
 import RNPickerSelect from 'react-native-picker-select';
 import DatePicker from 'react-native-datepicker';
@@ -10,12 +11,9 @@ export default class Reminder extends Component {
     constructor(props) {
         super(props);
 
-        // this.handleRemindTimeChange = this.handleRemindTimeChange.bind(this);
-        this.navigate = props.navigate;
         this.state = {
             reminderEnabled: false,
-            pageRenderedIn: props.pageRenderedIn || 'TaskList',
-            refreshing: false,
+            pageRenderedIn: props.pageRenderedIn || 'TaskList', //Todo: Unused unless details accessibly from timesheet
             remindTime: new Date(),
             repeatPeriod: 'Never'
         };
@@ -57,7 +55,7 @@ export default class Reminder extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <ListItem reminder/>
+                <ListItem {...this.props.navigation.getParam('taskProps')}/>
                 <View style={[styles.rowFlexContainer, { marginTop: 10 }]}>
                     <Text style={[styles.leftContent, styles.remindMsg, styles.text]}>Remind me on a day</Text>
                     <Switch
@@ -115,7 +113,8 @@ export default class Reminder extends Component {
                     />
                 </View>
                 <View style={styles.rowFlexContainer}>
-                    <Text style={[styles.leftContent, { flex: 0.93 }, styles.text]}>Repeat</Text>
+                    <Text style={[styles.leftContent, { flex: 0.92 }, styles.text]}>Repeat</Text>
+                    <Icon iconStyle={styles.repeatIcon} name='history' type='materialicons' size={35}/>
                     <RNPickerSelect
                         style={{ modalViewMiddle: { backgroundColor: 'rgb(25,25,25)', borderTopWidth: 0 }, chevron: { display: 'none'} }}
                         textInputProps={{ style: styles.recurrenceText }}
@@ -181,5 +180,15 @@ const styles = StyleSheet.create({
         fontFamily: 'System',
         fontWeight: '600',
         fontSize: 18,
-    }
+        borderWidth: 1,
+        borderColor: '#aaa',
+        paddingRight: 8,
+        paddingLeft: 8,
+        paddingTop: 6,
+        paddingBottom: 6
+    },
+    repeatIcon: {
+        color: 'dodgerblue',
+        paddingRight: 4
+    },
 });

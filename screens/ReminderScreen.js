@@ -17,8 +17,8 @@ export default class ReminderScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <DayHeader title="Create Reminder" noDate handleHeaderIconPress={this.handleHeaderIconPress} />
-        <Reminder/>
+        <DayHeader title="Details" noDate handleHeaderIconPress={this.handleHeaderIconPress}/>
+        <Reminder navigation={this.props.navigation}/>
       </View>
     );
   }

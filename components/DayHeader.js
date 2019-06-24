@@ -17,7 +17,9 @@ export default class DayHeader extends Component {
   }
 
   determineTitle() {
-    if (this.props.day === new Date().toLocaleDateString()) {
+    if (this.props.noDate) {
+      return this.props.title;
+    } else if (this.props.day === new Date().toLocaleDateString()) {
       return this.props.isTimesheet ? 'Timesheet -' : 'Today,';
     } else if (this.props.day === getTodayPlusOffset(-1).toLocaleDateString()) {
       return 'Yesterday,';
@@ -43,7 +45,7 @@ export default class DayHeader extends Component {
   }
 
   determineHeaderTextColor = () => {
-    return new Date(this.props.day).toLocaleDateString() === new Date().toLocaleDateString() ? 'white' : 'rgba(255, 255, 255, 0.7)';
+    return this.props.noDate || new Date(this.props.day).toLocaleDateString() === new Date().toLocaleDateString() ? 'white' : 'rgba(255, 255, 255, 0.7)';
   }
 
   render() {

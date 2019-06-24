@@ -13,7 +13,7 @@ export default class TaskListScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <TaskList navigate={this.props.navigation.navigate} />
+        <TaskList navigation={this.props.navigation}/>
       </View>
     );
   }

@@ -1,15 +1,13 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, TextInput, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
-import { Badge, Icon } from 'react-native-elements'
-import { Haptic } from 'expo'
-import Colors from '../constants/Colors'
+import { Badge, Icon } from 'react-native-elements';
+import { Haptic } from 'expo';
+import Colors from '../constants/Colors';
 
 export default class ListItem extends Component {
     constructor(props) {
         super(props);
 
-        // this.handleRemindTimeChange = this.handleRemindTimeChange.bind(this);
-        // console.log('item props:', props);
         this.state = {
             editing: false,
             editable: props.title === '',
@@ -18,7 +16,6 @@ export default class ListItem extends Component {
             completionPercentage: props.completionPercentage,
             hoursLogged: props.hoursLogged,
             activeTask: props.activeTaskKey === props.taskID,
-            reminder: props.reminder,
             height: props.reminder ? 80 : 62,
             badgeValue: props.isTimesheet ? '+' : `${props.completionPercentage}%`,
             completionColor: 'gray'
@@ -49,17 +46,57 @@ export default class ListItem extends Component {
         return this.isActiveTask() || this.props.isTimesheet && Number(this.state.hoursLogged) > 0;
     }
 
+    /*
+        title={data.item.title}
+        blocker={data.item.blocker}
+        completionPercentage={data.item.completionPercentage}
+        isTimesheet={this.state.isTimesheet}
+        isComplete={data.item.isComplete}
+        today={data.section.day === new Date().toLocaleDateString()}
+        hoursLogged={data.item.hoursLogged}
+        activeTaskKey={this.state.activeTaskKey}
+        taskID={data.item.key}
+        handleTimeInputBadgePress={this.handleTimeInputBadgePress}
+        handleBadgeInputBlur={this.handleBadgeInputBlur}
+        handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}
+        navigate={this.props.navigate}/>
+
+            editing: false,
+            editable: props.title === '',
+            title: props.title,
+            blocker: props.blocker,
+            completionPercentage: props.completionPercentage,
+            hoursLogged: props.hoursLogged,
+            activeTask: props.activeTaskKey === props.taskID,
+            height: props.reminder ? 80 : 62,
+            badgeValue: props.isTimesheet ? '+' : `${props.completionPercentage}%`,
+            completionColor: 'gray'
+    */
+
     handleLongPress = () => {
-        this.props.navigate('Reminder');
+        const taskProps = {
+            taskID: this.props.taskID,
+            handleTimeInputBadgePress: this.props.handleTimeInputBadgePress,
+            handleBadgeInputBlur: this.props.handleBadgeInputBlur,
+            handleTitleOrBlockerInputBlur: this.props.handleTitleOrBlockerInputBlur,
+            title: this.state.title,
+            blocker: this.state.blocker,
+            completionPercentage: this.state.completionPercentage,
+            hoursLogged: this.state.hoursLogged,
+            reminder: true
+        }
+
+        this.props.navigation.navigate('Reminder', { taskProps: taskProps });
     }
 
     handleTitleOrBlockerPress = () => {
-        Haptic.selection(); //Todo: see if collin prefers impact medium or heavy
+        Haptic.impact('heavy');
         this.setState({ editing: true });
     }
 
     handleInputBadgePress = () => {
-        Haptic.impact('heavy'); //Todo: see if collin prefers impact medium or selection
+        Haptic.impact('heavy');
+
         if (this.props.isTimesheet) {
             this.setState({ hoursLogged: '' });
         } else {
@@ -210,7 +247,7 @@ export default class ListItem extends Component {
                     keyboardAppearance="dark"
                     maxLength={4}
                 />}
-                {this.state.reminder && <Icon iconStyle={[styles.timeIcon, { display: 'flex' }]} name='clockcircleo' type="antdesign"/>}
+                {this.props.reminder && <Icon iconStyle={[styles.timeIcon, { display: 'flex' }]} name='clockcircleo' type="antdesign"/>}
             </View>
         );
     }

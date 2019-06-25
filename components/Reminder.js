@@ -189,6 +189,7 @@ const styles = StyleSheet.create({
     },
     repeatIcon: {
         color: 'dodgerblue',
-        paddingRight: 4
+        marginRight: 5,
+        transform: [{ rotateY: '180deg' }]
     },
 });

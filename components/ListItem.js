@@ -15,7 +15,6 @@ export default class ListItem extends Component {
             blocker: props.blocker,
             completionPercentage: props.completionPercentage,
             hoursLogged: props.hoursLogged,
-            activeTask: props.activeTaskKey === props.taskID,
             height: props.reminder ? 80 : 62,
             badgeValue: props.isTimesheet ? '+' : `${props.completionPercentage}%`,
             completionColor: 'gray'
@@ -23,7 +22,7 @@ export default class ListItem extends Component {
     }
 
     determineCompletionColor() {
-        if (this.props.isTimesheet) { return this.state.activeTask ? 'black' : 'white'; }
+        if (this.props.isTimesheet) { return this.isActiveTask() ? 'black' : 'white'; }
 
         const percentage = this.state.badgeValue.slice(0, -1);
 
@@ -39,39 +38,12 @@ export default class ListItem extends Component {
     }
 
     isActiveTask = () => {
-        return this.props.activeTaskKey === this.props.taskID;
+        return this.props.activeTaskKey === this.props.taskID; // Todo: || this.state.completionPercentage === '' ??? needs update for reminder screen
     }
 
     shouldShowInput = () => {
         return this.isActiveTask() || this.props.isTimesheet && Number(this.state.hoursLogged) > 0;
     }
-
-    /*
-        title={data.item.title}
-        blocker={data.item.blocker}
-        completionPercentage={data.item.completionPercentage}
-        isTimesheet={this.state.isTimesheet}
-        isComplete={data.item.isComplete}
-        today={data.section.day === new Date().toLocaleDateString()}
-        hoursLogged={data.item.hoursLogged}
-        activeTaskKey={this.state.activeTaskKey}
-        taskID={data.item.key}
-        handleTimeInputBadgePress={this.handleTimeInputBadgePress}
-        handleBadgeInputBlur={this.handleBadgeInputBlur}
-        handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}
-        navigate={this.props.navigate}/>
-
-            editing: false,
-            editable: props.title === '',
-            title: props.title,
-            blocker: props.blocker,
-            completionPercentage: props.completionPercentage,
-            hoursLogged: props.hoursLogged,
-            activeTask: props.activeTaskKey === props.taskID,
-            height: props.reminder ? 80 : 62,
-            badgeValue: props.isTimesheet ? '+' : `${props.completionPercentage}%`,
-            completionColor: 'gray'
-    */
 
     handleLongPress = () => {
         const taskProps = {
@@ -203,7 +175,7 @@ export default class ListItem extends Component {
     }
 
     determineBadgeBackgroundColor = () => {
-        if (this.props.isTimesheet && this.state.activeTask) {
+        if (this.props.isTimesheet && this.isActiveTask()) {
             return white;
         } else if (!this.props.isTimesheet && this.props.isComplete) {
             return this.state.completionColor;

@@ -61,7 +61,7 @@ export default class TimesheetScreen extends React.Component {
           hoursLogged={this.state.hoursLogged}
           style={styles.taskList}
           pageRenderedIn="Timesheet"
-          navigate={this.props.navigation.navigate}
+          navigation={this.props.navigation}
           handleTimeInputBadgePress={this.handleTimeInputBadgePress}
           addToTotalHoursLogged={this.addToTotalHoursLogged}
         />

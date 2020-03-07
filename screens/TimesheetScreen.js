@@ -17,8 +17,6 @@ import TaskList from '../components/TaskList';
 import Colors from '../constants/Colors';
 import TaskManager from '../components/TaskManager';
 
-const taskManager = new TaskManager();
-
 export default class TimesheetScreen extends React.Component {
   static navigationOptions = {
     title: 'Timesheet',
@@ -26,32 +24,32 @@ export default class TimesheetScreen extends React.Component {
   };
 
   constructor(props) {
-    const dayIdx = taskManager.tasks.findIndex((daySection) => daySection.day === new Date().toLocaleDateString());
-
     super(props);
-    this.dayIdx = dayIdx;
+
+    this.taskManager = new TaskManager();
+    this.dayIdx = this.taskManager.getTasks().findIndex((daySection) => {
+      return daySection.day === new Date().toLocaleDateString();
+    });;
     this.state = {
-      hoursLogged: `${taskManager.tasks[this.dayIdx].hoursLogged}`
+      hoursLogged: `${this.taskManager.getTasks()[this.dayIdx].hoursLogged}`
     };
   };
 
   addToTotalHoursLogged = (taskID, hours) => {
-    const totalHours = `${taskManager.tasks[this.dayIdx].data.reduce((dayHours, task, i) => {
-      if (i === 1) { return Number(dayHours.hoursLogged) + Number(task.hoursLogged); }
+    const totalHours = `${this.taskManager.getTasks()[this.dayIdx].data.reduce((dayHours, task, i) => {
+      if (i === 1) {
+        return Number(dayHours.hoursLogged) + Number(task.hoursLogged);
+      }
 
       return dayHours + Number(task.hoursLogged);
     })}`;
 
     this.setState({ hoursLogged: totalHours });
-    taskManager.tasks[this.dayIdx].hoursLogged = totalHours;
+    this.taskManager.getTasks()[this.dayIdx].hoursLogged = totalHours;
   }
 
   componentDidMount() {
     this.refs.hoursInput.focus();
-  }
-
-  navigateToTaskListScreen() {
-    this.props.navigation.navigate('TaskList');
   }
 
   render() {
@@ -59,13 +57,12 @@ export default class TimesheetScreen extends React.Component {
       <KeyboardAvoidingView style={styles.container} behavior="padding" enabled>
         <TaskList
           hoursLogged={this.state.hoursLogged}
-          style={styles.taskList}
           pageRenderedIn="Timesheet"
-          navigate={this.props.navigation.navigate}
+          navigation={this.props.navigation}
           handleTimeInputBadgePress={this.handleTimeInputBadgePress}
           addToTotalHoursLogged={this.addToTotalHoursLogged}
         />
-        <View style={styles.hoursLoggedContainer} onMagicTap={this.navigateToTaskListScreen}>
+        <View style={styles.hoursLoggedContainer}>
           <TextInput
             ref='hoursInput'
             style={styles.hoursLoggedInput}
@@ -95,20 +92,18 @@ const styles = StyleSheet.create({
     height: 62,
     paddingTop: 10,
     alignItems: 'flex-start',
-    // justifyContent: 'space-evenly',
     display: 'flex',
     flexDirection: 'row',
     borderWidth: 1,
     borderColor: Colors.transparentGrayBorder
   },
   hoursLoggedInput: {
-    backgroundColor: 'white',
-    color: 'black',
-    borderColor: 'white',
+    backgroundColor: Colors.WHITE,
+    color: Colors.BLACK,
+    borderColor: Colors.WHITE,
     borderWidth: 1.5,
     borderRadius: 5,
     marginBottom: 10,
-    // flex: 0.2,
     minWidth: 47,
     minHeight: 15,
     textAlign: 'center',
@@ -119,7 +114,7 @@ const styles = StyleSheet.create({
     marginLeft: 11
   },
   hoursLoggedMsg: {
-    color: 'white',
+    color: Colors.WHITE,
     flex: 0.8,
     flexWrap: 'wrap',
     width: '100%',
@@ -127,7 +122,5 @@ const styles = StyleSheet.create({
     fontFamily: 'System',
     fontWeight: '700',
     fontSize: 20
-  },
-  taskList: {
   }
 });

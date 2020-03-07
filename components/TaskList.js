@@ -7,16 +7,16 @@ import DayHeader from './DayHeader'
 import ListItem from './ListItem';
 import TaskManager from './TaskManager';
 import KeyboardAwareSwipeListView from './KeyboardAwareSwipeListView';
-
-const taskManager = new TaskManager();
+import { NavigationActions } from 'react-navigation';
 
 export default class TaskList extends Component {
 
   constructor(props) {
-    console.log('reconstructing task list');
     super(props);
 
+    this.taskManager = new TaskManager();
     this.state = {
+      tasks: this.taskManager.getTasks(),
       activeTaskKey: '',
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
@@ -26,29 +26,32 @@ export default class TaskList extends Component {
     this.taskIdToActiveSwipeDirection = {};
     this.rowSwipeAnimatedValues = {};
 
-    taskManager.tasks.forEach((day) => {
+    this.state.tasks.forEach((day) => {
         day.data.forEach((task) => {
           this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
         });
     });
   }
 
-  buildTask(title='', blocker='', date=new Date(), remindTime) {
+  buildTask(title='', blocker='', date=new Date()) {
     return {
-      key: taskManager.getTaskId({ title: title, date: date.valueOf() }),
+      key: this.taskManager.getTaskId({ title: title, date: date.valueOf() }),
       title: title,
       blocker: blocker,
       completionPercentage: 0,
       hoursLogged: 0,
       isComplete: false,
       date: date.valueOf(),
-      remindTime: remindTime
+      reminder: {
+        time: null,
+        repeat: 'never',
+        enabled: false
+      }
     };
   }
 
   navigateBack = () => {
-    this.props.navigation.navigate(this.state.pageRenderedIn === 'TaskList' ?
-      'Timesheet' : 'TaskList');
+    this.props.navigation.navigate(this.state.isTimesheet ? 'TaskList' : 'Timesheet');
   }
 
   handleHeaderIconPress = () => {
@@ -71,8 +74,16 @@ export default class TaskList extends Component {
     this.closeRow(rowMap, taskID);
 
     setTimeout(() => {
-      const { dayIdx, taskIdx } = taskManager.getTask(taskID);
-      taskManager.tasks[dayIdx].data.splice(taskIdx, 1);
+      const { dayIdx, taskIdx } = this.taskManager.getTask(taskID);
+      const day = this.state.tasks[dayIdx];
+
+      day.data.splice(taskIdx, 1);
+
+      if (0 === day.data.length && day.day !== new Date().toLocaleDateString()) {
+        this.state.tasks.splice(dayIdx, 1);
+      }
+
+      this.taskManager.storeTasks();
     }, 250)
   }
 
@@ -84,9 +95,10 @@ export default class TaskList extends Component {
     if (toValue < 0) {
       this.deleteSectionRow(rowMap, taskID);
     } else {
-      const { task } = taskManager.getTask(taskID);
+      const { task } = this.taskManager.getTask(taskID);
 
       task.isComplete = true;
+      this.taskManager.storeTasks();
     }
   }
 
@@ -102,6 +114,11 @@ export default class TaskList extends Component {
     this.setState({ taskIdToActiveSwipeDirection: this.taskIdToActiveSwipeDirection });
   }
 
+  componentDidMount = () => {
+    // Workaround for KeyboardAwareSectionList bug with data refreshing
+    setTimeout(() => this.taskManager.setTasks(this.state.tasks), 1)
+  }
+
   determineRowColor = (taskID, side) => {
     const activeSwipeDirection = this.taskIdToActiveSwipeDirection[taskID];
 
@@ -110,18 +127,18 @@ export default class TaskList extends Component {
   }
 
   handleTitleOrBlockerInputBlur = (taskID, title, blocker) => {
-    const { task } = taskManager.getTask(taskID);
+    const { task, dayIdx, taskIdx } = this.taskManager.getTask(taskID);
 
     if (task.title === title && task.blocker === blocker) { return; }
 
     task.title = title;
     task.blocker = blocker;
 
-    taskManager.storeTasks();
+    this.taskManager.storeTasks();
   }
 
   handleBadgeInputBlur = (taskID, hours, completionPercentage) => {
-    const { task } = taskManager.getTask(taskID);
+    const { task, dayIdx, taskIdx } = this.taskManager.getTask(taskID);
 
     if (task.hoursLogged !== hours || task.completionPercentage !== completionPercentage) {
       if (this.state.isTimesheet) {
@@ -131,7 +148,7 @@ export default class TaskList extends Component {
         task.completionPercentage = completionPercentage;
       }
 
-      taskManager.storeTasks();
+      this.taskManager.storeTasks();
     }
 
     this.setState({ activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
@@ -146,12 +163,13 @@ export default class TaskList extends Component {
         title={data.item.title}
         blocker={data.item.blocker}
         completionPercentage={data.item.completionPercentage}
-        isTimesheet={this.state.isTimesheet}
-        isComplete={data.item.isComplete}
-        today={data.section.day === new Date().toLocaleDateString()}
         hoursLogged={data.item.hoursLogged}
-        activeTaskKey={this.state.activeTaskKey}
+        isComplete={data.item.isComplete}
+        reminder={data.item.reminder}
         taskID={data.item.key}
+        activeTaskKey={this.state.activeTaskKey}
+        isTimesheet={this.state.isTimesheet}
+        today={data.section.day === new Date().toLocaleDateString()}
         handleTimeInputBadgePress={this.handleTimeInputBadgePress}
         handleBadgeInputBlur={this.handleBadgeInputBlur}
         handleTitleOrBlockerInputBlur={this.handleTitleOrBlockerInputBlur}
@@ -167,7 +185,7 @@ export default class TaskList extends Component {
             scale: this.getScaleFromSwipeVal(data.item.key)
           }]
         }}>
-          <Icon size={28} color='white' name="check-circle" type="materialicons" />
+          <Icon size={28} color={Colors.WHITE} name="check-circle" type="materialicons" />
         </Animated.View>
       </TouchableOpacity>
       <TouchableOpacity
@@ -180,7 +198,7 @@ export default class TaskList extends Component {
             scale: this.getScaleFromSwipeVal(data.item.key)
           }]
         }}>
-          <Icon size={28} color='white' name="delete" type="materialicons" />
+          <Icon size={28} color={Colors.WHITE} name="delete" type="materialicons" />
         </Animated.View>
       </TouchableOpacity>
     </View>;
@@ -209,16 +227,18 @@ export default class TaskList extends Component {
       const today = new Date().toLocaleDateString();
 
       this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
-      taskManager.tasks.find((dayTasks) => dayTasks.day === today).data.unshift(task);
+      this.state.tasks.find((dayTasks) => dayTasks.day === today).data.unshift(task);
       this.setState({ creatingTask: false, activeTaskKey: task.key });
     }, 500)
   }
 
   createTaskControl = () => {
+    if (this.state.isTimesheet) { return; }
+
     return (
       <RefreshControl
         title='Create task'
-        titleColor='white'
+        titleColor={Colors.WHITE}
         onRefresh={this.createTask}
         refreshing={this.state.creatingTask}/>
     )
@@ -229,10 +249,11 @@ export default class TaskList extends Component {
       <View style={styles.container}>
         <KeyboardAwareSwipeListView
           useSectionList
-          sections={taskManager.tasks}
+          sections={this.state.tasks}
           renderSectionHeader={({ section: { day } }) => (
             <DayHeader
               day={day}
+              badgeText={this.state.isTimesheet ? 'TASKS' : 'TIME'}
               isTimesheet={this.state.isTimesheet}
               hidden={this.state.isTimesheet && day !== new Date().toLocaleDateString()}
               handleHeaderIconPress={this.handleHeaderIconPress}/>
@@ -262,6 +283,10 @@ export default class TaskList extends Component {
       </View>
     );
   }
+}
+
+function getSwipeDirectionColor(side) {
+  return side ==='left' ? Colors.statusGreen : Colors.headerRed;
 }
 
 const styles = StyleSheet.create({
@@ -298,7 +323,3 @@ const styles = StyleSheet.create({
     paddingLeft: 10
   },
 });
-
-function getSwipeDirectionColor(side) {
-  return side ==='left' ? Colors.statusGreen : Colors.headerRed;
-}

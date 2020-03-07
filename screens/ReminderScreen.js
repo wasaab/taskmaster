@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import * as Haptic from 'expo-haptics';
 import Reminder from '../components/Reminder'
 import Colors from '../constants/Colors';
 import DayHeader from '../components/DayHeader'
@@ -10,14 +11,19 @@ export default class ReminderScreen extends React.Component {
     header: null
   };
 
-  handleHeaderIconPress = () => {
-    this.props.navigation.navigate('TaskList');
+  navigateBack = () => {
+    Haptic.impactAsync('heavy');
+    this.props.navigation.goBack();
   }
 
   render() {
     return (
       <View style={styles.container}>
-        <DayHeader title="Details" noDate handleHeaderIconPress={this.handleHeaderIconPress}/>
+        <DayHeader
+          title="Details"
+          noDate
+          badgeText={this.props.navigation.getParam('backText')}
+          handleHeaderIconPress={this.navigateBack}/>
         <Reminder navigation={this.props.navigation}/>
       </View>
     );
@@ -27,13 +33,12 @@ export default class ReminderScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingBottom: 190,
     backgroundColor: Colors.darkBackground
   },
   header: {
     padding: 6,
     paddingLeft: 10,
-    color: 'white',
+    color: Colors.WHITE,
     backgroundColor: Colors.headerRed,
     fontFamily: 'System',
     fontWeight: '600',

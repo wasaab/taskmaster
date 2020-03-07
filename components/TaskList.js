@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight, KeyboardAvoidingView } from 'react-native';
 import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
-import { Haptic } from 'expo'
+import * as Haptic from 'expo-haptics';
 import Colors from '../constants/Colors'
 import DayHeader from './DayHeader'
 import ListItem from './ListItem';
@@ -52,7 +52,7 @@ export default class TaskList extends Component {
   }
 
   handleHeaderIconPress = () => {
-    Haptic.impact('heavy');
+    Haptic.impactAsync('heavy');
     this.navigateBack();
   }
 

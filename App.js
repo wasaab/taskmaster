@@ -1,6 +1,10 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
-import { AppLoading, Asset, Constants, Font, Icon } from 'expo';
+import { Asset } from 'expo-asset';
+import Constants from 'expo-constants';
+import * as Icon from '@expo/vector-icons';
+import * as Font from 'expo-font';
+import { AppLoading } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 import Colors from './constants/Colors'
 import TaskManager from './components/TaskManager';

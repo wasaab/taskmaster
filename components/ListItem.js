@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, TextInput, View, Platform, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
 import { Badge, Icon } from 'react-native-elements';
-import { Haptic } from 'expo';
+import * as Haptic from 'expo-haptics';
 import Colors from '../constants/Colors';
 
 export default class ListItem extends Component {
@@ -62,12 +62,12 @@ export default class ListItem extends Component {
     }
 
     handleTitleOrBlockerPress = () => {
-        Haptic.impact('heavy');
+        Haptic.impactAsync('heavy');
         this.setState({ editing: true });
     }
 
     handleInputBadgePress = () => {
-        Haptic.impact('heavy');
+        Haptic.impactAsync('heavy');
 
         if (this.props.isTimesheet) {
             this.setState({ hoursLogged: '' });

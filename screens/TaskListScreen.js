@@ -6,7 +6,7 @@ import Colors from '../constants/Colors'
 
 export default class TaskListScreen extends React.Component {
   static navigationOptions = {
-    title: 'Tasks',
+    title: 'TaskList',
     header: null
   };
 
@@ -22,7 +22,6 @@ export default class TaskListScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingBottom: 40,
     backgroundColor: Colors.darkBackground,
   },
 });

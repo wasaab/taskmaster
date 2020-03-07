@@ -6,50 +6,67 @@ import RNPickerSelect from 'react-native-picker-select';
 import DatePicker from 'react-native-datepicker';
 import Colors from '../constants/Colors'
 import ListItem  from './ListItem';
+import TaskManager from './TaskManager';
+
+const taskManager = new TaskManager();
 
 export default class Reminder extends Component {
     constructor(props) {
         super(props);
 
+        const { reminder, taskID } = this.props.navigation.getParam('taskProps');
+
         this.state = {
-            reminderEnabled: false,
-            pageRenderedIn: props.pageRenderedIn || 'TaskList', //Todo: Unused unless details accessibly from timesheet
-            remindTime: new Date(),
-            repeatPeriod: 'Never'
+            taskID: taskID,
+            reminderEnabled: reminder.enabled,
+            remindTime: reminder.time ? new Date(reminder.time) : new Date(),
+            repeatPeriod: reminder.repeat
         };
     }
 
     createReminder() {
-        RNCalendarReminders.saveReminder('title', {
-            location: 'location',
-            notes: 'notes',
-            startDate: '2016-10-01T09:45:00.000UTC',
-            recurrence: ''
+        const { title, blocker } = this.props.navigation.getParam('taskProps');
+
+        RNCalendarReminders.saveReminder(title, {
+            location: '',
+            notes: blocker,
+            startDate: taskManager.getTodayPlusOffset(1),
+            recurrence: repeatPeriod
         })
-            .then(id => {
+            .then((id) => {
                 console.log('Reminder saved with ID:', id);
             })
-            .catch(error => {
+            .catch((error) => {
                 console.error('Reminder failed to save:', error);
             });
     }
 
     handleRemindTimeChange = (newTime) => {
         this.setState({ remindTime: newTime });
+
+        const { task } = taskManager.getTask(this.state.taskID);
+
+        task.reminder.time = newTime;
+        taskManager.storeTasks();
     }
 
     handleReminderToggled = (isEnabled) => {
         this.setState({ reminderEnabled: isEnabled });
-    }
 
-    formatRemindTime = () => {
-        return this.state.remindTime.toLocaleString([], {
-            weekday: 'short', month: 'numeric', day: 'numeric', year: '2-digit', hour: '2-digit', minute: '2-digit'
-        }).replace(',', '')
+        const { task } = taskManager.getTask(this.state.taskID);
+
+        task.reminder.enabled = isEnabled;
+        task.reminder.time = this.state.remindTime;
+        taskManager.storeTasks();
     }
 
     handleRepeatPeriodChange = (newPeriod) => {
         this.setState({ repeatPeriod: newPeriod });
+
+        const { task } = taskManager.getTask(this.state.taskID);
+
+        task.reminder.repeat = newPeriod;
+        taskManager.storeTasks();
     }
 
     render() {
@@ -64,16 +81,15 @@ export default class Reminder extends Component {
                         value={this.state.reminderEnabled}
                     />
                 </View>
+                {this.state.reminderEnabled &&
                 <View style={styles.rowFlexContainer}>
                     <Text style={[styles.leftContent, styles.alertMsg, styles.text]}>Alert</Text>
-                    {/* <Text style={[styles.remindTimeText, styles.text]}>{this.formatRemindTime()}</Text> */}
                     <DatePicker
                         style={styles.remindTimePicker}
                         date={this.state.remindTime}
                         mode="datetime"
                         placeholder="select date"
                         format="ddd M/D/YY, h:mm a"
-
                         confirmBtnText="Confirm"
                         cancelBtnText="Cancel"
                         customStyles={{
@@ -92,7 +108,7 @@ export default class Reminder extends Component {
                             },
                             dateText: {
                                 width: '100%',
-                                color: 'white',
+                                color: Colors.WHITE,
                                 textAlign: 'center',
                                 fontFamily: 'System',
                                 fontWeight: '600',
@@ -106,33 +122,38 @@ export default class Reminder extends Component {
                                 backgroundColor: Colors.darkBackground
                             },
                             btnTextCancel: {
-                                color: 'white'
+                                color: Colors.WHITE
                             }
                         }}
                         onDateChange={this.handleRemindTimeChange}
                     />
                 </View>
+                }
+                {this.state.reminderEnabled &&
                 <View style={styles.rowFlexContainer}>
                     <Text style={[styles.leftContent, { flex: 0.92 }, styles.text]}>Repeat</Text>
                     <Icon iconStyle={styles.repeatIcon} name='history' type='materialicons' size={35}/>
                     <RNPickerSelect
-                        style={{ modalViewMiddle: { backgroundColor: 'rgb(25,25,25)', borderTopWidth: 0 }, chevron: { display: 'none'} }}
+                        style={{
+                            modalViewMiddle: { backgroundColor: 'rgb(25,25,25)', borderTopWidth: 0 },
+                            chevron: { display: 'none'}
+                        }}
                         textInputProps={{ style: styles.recurrenceText }}
                         pickerProps={{ style: { backgroundColor: 'rgb(60,60,60)' } }}
-                        // hideDoneBar={true}
                         modalProps={{ style: { backgroundColor: Colors.darkBackground } }}
                         items={[
-                            { label: 'Never', value: 'Never'},
-                            { label: 'Daily', value: 'Daily'},
-                            { label: 'Weekly', value: 'Weekly'},
-                            { label: 'Monthly', value: 'Monthly'},
-                            { label: 'Yearly', value: 'Yearly'},
+                            { label: 'Never', value: 'never'},
+                            { label: 'Daily', value: 'daily'},
+                            { label: 'Weekly', value: 'weekly'},
+                            { label: 'Monthly', value: 'monthly'},
+                            { label: 'Yearly', value: 'yearly'},
                         ]}
                         onValueChange={this.handleRepeatPeriodChange}
                         value={this.state.repeatPeriod}
                         useNativeAndroidPickerStyle={false}
                     />
                 </View>
+                }
             </View>
         );
     };
@@ -140,14 +161,11 @@ export default class Reminder extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        // flex: 1,
         display: 'flex',
         justifyContent: 'center',
         backgroundColor: Colors.darkBackground
     },
     remindTimePicker: {
-        // flex: 0.55,
-        // width: '100%',
         height: 70
     },
     rowFlexContainer: {
@@ -167,7 +185,7 @@ const styles = StyleSheet.create({
         paddingLeft: 15
     },
     text: {
-        color: 'white',
+        color: Colors.WHITE,
         width: '100%',
         height: 70,
         fontFamily: 'System',
@@ -175,7 +193,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
     },
     recurrenceText: {
-        color: 'white',
+        color: Colors.WHITE,
         width: '100%',
         fontFamily: 'System',
         fontWeight: '600',

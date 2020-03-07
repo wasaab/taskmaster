@@ -2,17 +2,18 @@ import React, { Component } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Badge, Icon, withBadge } from 'react-native-elements'
 import Colors from '../constants/Colors'
+import TaskManager from '../components/TaskManager';
 
 export default class DayHeader extends Component {
   constructor(props) {
     super(props);
 
+    this.taskManager = new TaskManager();
     this.handleHeaderIconPress= props.handleHeaderIconPress,
     this.state = {
       noDate: props.noDate,
       hidden: props.hidden,
-      touchableAreaFlex: !props.isTimesheet ? 0.2 : 0.23,
-      badgeText: !props.isTimesheet ? 'TIME' : 'TASKS'
+      touchableAreaFlex: !props.isTimesheet ? 0.2 : 0.23
     };
   }
 
@@ -21,9 +22,9 @@ export default class DayHeader extends Component {
       return this.props.title;
     } else if (this.props.day === new Date().toLocaleDateString()) {
       return this.props.isTimesheet ? 'Timesheet -' : 'Today,';
-    } else if (this.props.day === getTodayPlusOffset(-1).toLocaleDateString()) {
+    } else if (this.props.day === this.taskManager.getTodayPlusOffset(-1).toLocaleDateString()) {
       return 'Yesterday,';
-    } else if (this.props.day === getTodayPlusOffset(1).toLocaleDateString()) {
+    } else if (this.props.day === this.taskManager.getTodayPlusOffset(1).toLocaleDateString()) {
       return 'Tomorrow,';
     }
   }
@@ -32,36 +33,48 @@ export default class DayHeader extends Component {
     return { display: this.state.hidden ? 'none' : 'flex' };
   }
 
-  getOrdinalNum(n) {
-    return n + (n > 0 ? ['th', 'st', 'nd', 'rd'][(n > 3 && n < 21) || n % 10 > 3 ? 0 : n % 10] : '');
-  }
-
   determineDate = () => {
     if (this.state.noDate) { return; }
 
-    const dateTokens = new Date(this.props.day).toLocaleString([], {weekday: 'long', day:'numeric'}).split(' ');
+    const dateTokens = new Date(this.props.day)
+      .toLocaleString([], { weekday: 'long', day:'numeric' })
+      .split(' ');
 
-    return `${dateTokens[1]} ${this.getOrdinalNum(dateTokens[0])}`;
+    return `${dateTokens[1]} ${getOrdinalNum(dateTokens[0])}`;
+  }
+
+  isToday() {
+    return new Date(this.props.day).toLocaleDateString() === new Date().toLocaleDateString();
   }
 
   determineHeaderTextColor = () => {
-    return this.props.noDate || new Date(this.props.day).toLocaleDateString() === new Date().toLocaleDateString() ? 'white' : 'rgba(255, 255, 255, 0.7)';
+    return this.props.noDate || this.isToday() ? Colors.WHITE : 'rgba(255, 255, 255, 0.7)';
   }
 
   render() {
     return (
       <View style={[styles.dayHeaderContainer, this.determineDayDisplayStyle()]}>
         <View style={styles.flexRow}>
-          <Text style={[styles.dayHeader, { flex: 1 - this.state.touchableAreaFlex }, { color: this.determineHeaderTextColor()}]}>{this.determineTitle()} {this.determineDate()}</Text>
-          <TouchableOpacity style={{display: 'flex', flexDirection: 'row', flex: this.state.touchableAreaFlex }} onPress={this.handleHeaderIconPress}>
+          <Text
+            style={[
+              styles.dayHeader,
+              { flex: 1 - this.state.touchableAreaFlex },
+              { color: this.determineHeaderTextColor()}
+            ]}>
+            {this.determineTitle()} {this.determineDate()}
+          </Text>
+          <TouchableOpacity
+            style={{display: 'flex', flexDirection: 'row', flex: this.state.touchableAreaFlex }}
+            onPress={this.handleHeaderIconPress}
+          >
             <Badge
-              value={this.state.badgeText}
+              value={this.props.badgeText}
               status="primary"
               containerStyle={styles.badgeContainer}
-              badgeStyle={[styles.badge, { borderColor: 'white' }]}
+              badgeStyle={[styles.badge, { borderColor: Colors.WHITE }]}
               textStyle={[styles.badgeText, { color: Colors.headerRed }]}
             />
-            <Icon iconStyle={styles.chevron} name="chevron-right" type="materialicons" size={35} color="white" />
+            <Icon iconStyle={styles.chevron} name="chevron-right" type="materialicons" size={35} color={Colors.WHITE} />
           </TouchableOpacity>
         </View>
       </View>
@@ -69,11 +82,21 @@ export default class DayHeader extends Component {
   };
 }
 
-function getTodayPlusOffset(offset = 0) {
-  var day = new Date();
-  day.setDate(day.getDate() + offset);
+function isThSuffix(num) {
+  return (num > 3 && num < 21) || num % 10 > 3;
+}
 
-  return day;
+function determineSuffix(num) {
+  const suffixes = ['th', 'st', 'nd', 'rd'];
+  const suffixIdx = isThSuffix(num) ? 0 : num % 10;
+
+  return suffixes[suffixIdx];
+}
+
+function getOrdinalNum(num) {
+  if (num <= 0) { return num; }
+
+  return num + determineSuffix(num);
 }
 
 const styles = StyleSheet.create({
@@ -95,7 +118,7 @@ const styles = StyleSheet.create({
   dayHeader: {
     padding: 6,
     paddingRight: 0,
-    color: 'white',
+    color: Colors.WHITE,
     fontFamily: 'System',
     fontWeight: '800',
     fontSize: 21
@@ -113,7 +136,7 @@ const styles = StyleSheet.create({
     flex: 0.2,
     borderRadius: 5,
     borderWidth: 1.5,
-    backgroundColor: 'white',
+    backgroundColor: Colors.WHITE,
     minWidth: 48,
     minHeight: 23
   },

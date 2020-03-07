@@ -12,6 +12,10 @@ export default {
   noticeBackground: tintColor,
   noticeText: '#fff',
 
+  WHITE: 'white',
+  BLACK: 'black',
+  GRAY: 'gray',
+
   darkBackground: 'rgb(20, 20, 20)',
   darkSecondary: 'rgb(51,51,51)',
   transparentGrayBorder: 'rgba(80,80,80,0.2)',

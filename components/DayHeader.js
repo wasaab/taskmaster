@@ -13,7 +13,7 @@ export default class DayHeader extends Component {
     this.state = {
       noDate: props.noDate,
       hidden: props.hidden,
-      touchableAreaFlex: !props.isTimesheet ? 0.2 : 0.23
+      touchableAreaFlex: props.badgeText === 'TIME' ? 0.2 : 0.23
     };
   }
 

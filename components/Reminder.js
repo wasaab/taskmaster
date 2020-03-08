@@ -15,11 +15,13 @@ export default class Reminder extends Component {
         super(props);
 
         const { reminder, taskID } = this.props.navigation.getParam('taskProps');
+        const halfHourMs = 1800000;
+        const dateRoundedToHalfHour = new Date(Math.round(new Date().getTime() / halfHourMs) * halfHourMs);
 
         this.state = {
             taskID: taskID,
             reminderEnabled: reminder.enabled,
-            remindTime: reminder.time ? new Date(reminder.time) : new Date(),
+            remindTime: reminder.time ? new Date(reminder.time) : dateRoundedToHalfHour,
             repeatPeriod: reminder.repeat
         };
     }

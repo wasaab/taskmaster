@@ -140,8 +140,8 @@ export default class TaskManager {
             "date": 1559099478927,
             "isComplete": false,
             "reminder": {
-              "time": this.getTodayPlusOffset(1).getTime(),
-              "repeat": "monthly",
+              "time": null,
+              "repeat": "never",
               "enabled": false
             }
           },

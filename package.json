@@ -1,5 +1,9 @@
 {
+  "name": "taskmaster",
+  "version": "0.1.0",
+  "description": "A React Native App for task management",
   "main": "node_modules/expo/AppEntry.js",
+  "author": "Kent",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -12,17 +16,21 @@
   },
   "dependencies": {
     "@expo/samples": "2.1.1",
-    "expo": "^32.0.0",
-    "react": "16.5.0",
-    "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
+    "expo": "^33.0.0",
+    "react": "16.8.3",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-33.0.1.tar.gz",
+    "react-native-calendar-reminders": "^1.1.2",
+    "react-native-datepicker": "^1.7.2",
     "react-native-elements": "^1.1.0",
+    "react-native-keyboard-aware-scroll-view": "^0.9.1",
+    "react-native-picker-select": "^6.2.0",
+    "react-native-swipe-list-view": "^1.5.4",
     "react-native-swipe-up-down": "^1.0.7",
-    "react-native-swipeable": "^0.6.0",
     "react-navigation": "^3.0.9"
   },
   "devDependencies": {
     "babel-preset-expo": "^5.0.0",
-    "jest-expo": "^32.0.0"
+    "jest-expo": "^33.0.0"
   },
   "private": true
 }

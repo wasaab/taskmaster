@@ -6,24 +6,14 @@ import Colors from '../constants/Colors'
 
 export default class TaskListScreen extends React.Component {
   static navigationOptions = {
-    title: 'Tasks',
+    title: 'TaskList',
     header: null
   };
 
   render() {
     return (
       <View style={styles.container}>
-        <TaskList navigate={this.props.navigation.navigate}/>
-        {/* <SwipeUpDown
-          itemMini={true} // Pass props component when collapsed
-          // itemFull={false} // Pass props component when show full
-          // onShowMini={}
-          // onShowFull={}
-          // onMoveDown={}
-          // onMoveUp={}
-          disablePressToShow={false} // Press item mini to show full
-          style={{ backgroundColor: Colors.darkSecondary }} // style for swipe
-        /> */}
+        <TaskList navigation={this.props.navigation}/>
       </View>
     );
   }
@@ -32,7 +22,6 @@ export default class TaskListScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingBottom: 40,
     backgroundColor: Colors.darkBackground,
   },
 });

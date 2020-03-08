@@ -15,14 +15,16 @@ export default class ListItem extends Component {
             blocker: props.blocker,
             completionPercentage: props.completionPercentage,
             hoursLogged: props.hoursLogged,
-            height: props.reminder ? 80 : 62,
+            height: props.isReminderScreen ? 80 : 62,
             badgeValue: props.isTimesheet ? '+' : `${props.completionPercentage}%`,
-            completionColor: 'gray'
+            completionColor: Colors.GRAY
         };
     }
 
     determineCompletionColor() {
-        if (this.props.isTimesheet) { return this.isActiveTask() ? 'black' : 'white'; }
+        if (this.props.isTimesheet) {
+            return this.isActiveTask() ? Colors.BLACK : Colors.WHITE;
+        }
 
         const percentage = this.state.badgeValue.slice(0, -1);
 
@@ -38,11 +40,17 @@ export default class ListItem extends Component {
     }
 
     isActiveTask = () => {
-        return this.props.activeTaskKey === this.props.taskID; // Todo: || this.state.completionPercentage === '' ??? needs update for reminder screen
+        return this.props.activeTaskKey === this.props.taskID;
     }
 
     shouldShowInput = () => {
         return this.isActiveTask() || this.props.isTimesheet && Number(this.state.hoursLogged) > 0;
+    }
+
+    shouldShowRepeatReminderIcon = () => {
+        return this.props.isReminderScreen
+            && 'never' !== this.props.reminder.repeat
+            && this.props.reminder.enabled;
     }
 
     handleLongPress = () => {
@@ -55,10 +63,15 @@ export default class ListItem extends Component {
             blocker: this.state.blocker,
             completionPercentage: this.state.completionPercentage,
             hoursLogged: this.state.hoursLogged,
-            reminder: true
+            isComplete: this.props.isComplete,
+            reminder: this.props.reminder,
+            isReminderScreen: true
         }
 
-        this.props.navigation.navigate('Reminder', { taskProps: taskProps });
+        this.props.navigation.navigate('Reminder', {
+            taskProps: taskProps,
+            backText:  this.props.isTimesheet ? 'TIME' : 'TASKS'
+        });
     }
 
     handleTitleOrBlockerPress = () => {
@@ -92,22 +105,18 @@ export default class ListItem extends Component {
     }
 
     handleTitleInputChange = (newValue) => {
-        this.setState({ title: newValue });
+        this.setState({ title: newValue.trim() });
     }
 
     handleBlockerInputChange = (newValue) => {
-        this.setState({ blocker: newValue });
+        this.setState({ blocker: newValue.trim() });
     }
 
     handleBadgeInputChange = (newValue) => {
         if (this.props.isTimesheet) {
             this.setState({ hoursLogged: newValue });
         } else {
-            if (newValue > 100) {
-                newValue = 100;
-            }
-
-            this.setState({ completionPercentage: newValue });
+            this.setState({ completionPercentage: Math.min(newValue, 100) });
         }
     }
 
@@ -118,6 +127,8 @@ export default class ListItem extends Component {
     }
 
     handleTouchContainerPress = () => {
+        if (this.props.isTimesheet) { return; }
+
         this.setState({ editable: true });
 
         setTimeout(() => {
@@ -133,11 +144,14 @@ export default class ListItem extends Component {
         this.badgeInputRef.focus();
     }
 
+    isNewlyCreatedTask() {
+        return this.props.title === ''
+            && this.state.hoursLogged === 0
+            && this.state.completionPercentage === 0;
+    }
+
     determineInputValue = () => {
-        //If newly created task
-        if (this.props.title === '' && this.state.hoursLogged === 0 && this.state.completionPercentage === 0) {
-             return '';
-        }
+        if (this.isNewlyCreatedTask()) { return ''; }
 
         return this.props.isTimesheet ? `${this.state.hoursLogged}` : `${this.state.completionPercentage}`;
     }
@@ -189,7 +203,7 @@ export default class ListItem extends Component {
             <View style={styles.iconContainer}>
                 {!this.shouldShowInput() &&
                 <Badge
-                    onPress={this.handleInputBadgePress}
+                    onPress={this.props.isReminderScreen ? null : this.handleInputBadgePress}
                     value={this.state.badgeValue}
                     status="primary"
                     containerStyle={styles.badgeContainer}
@@ -219,7 +233,8 @@ export default class ListItem extends Component {
                     keyboardAppearance="dark"
                     maxLength={4}
                 />}
-                {this.props.reminder && <Icon iconStyle={[styles.timeIcon, { display: 'flex' }]} name='clockcircleo' type="antdesign"/>}
+                {this.shouldShowRepeatReminderIcon() &&
+                <Icon iconStyle={[styles.repeatReminderIcon, { display: 'flex' }]} name='history' type='materialicons' size={30}/>}
             </View>
         );
     }
@@ -230,7 +245,12 @@ export default class ListItem extends Component {
         this.state.completionColor = this.determineCompletionColor();
 
         return (
-            <TouchableHighlight onPress={this.handleTouchContainerPress} underlayColor='rgb(60, 60, 60)' onLongPress={this.handleLongPress}>
+            <TouchableHighlight
+                disabled={this.props.isReminderScreen}
+                onPress={this.handleTouchContainerPress}
+                underlayColor='rgb(60, 60, 60)'
+                onLongPress={this.handleLongPress}
+            >
                 <View style={[styles.listItem, {
                     backgroundColor: Colors.darkBackground,
                     height: this.state.height,
@@ -276,9 +296,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         height: '100%'
     },
-    timeIcon: {
+    repeatReminderIcon: {
         color: 'dodgerblue',
-        paddingBottom: 10
+        paddingBottom: 10,
+        transform: [{ rotateY: '180deg' }]
     },
     listItem: {
         minHeight: 62,
@@ -291,7 +312,7 @@ const styles = StyleSheet.create({
         borderColor: Colors.transparentGrayBorder
     },
     taskTitle: {
-        color: 'white',
+        color: Colors.WHITE,
         flex: 0.8,
         flexWrap: 'wrap',
         width: '100%',
@@ -332,9 +353,9 @@ const styles = StyleSheet.create({
     hoursLoggedInput: {
         marginTop: 2,
         marginRight: 3,
-        backgroundColor: 'white',
-        color: 'black',
-        borderColor: 'white',
+        backgroundColor: Colors.WHITE,
+        color: Colors.BLACK,
+        borderColor: Colors.WHITE,
         flex: 0.2,
         borderRadius: 5,
         borderWidth: 1.5,

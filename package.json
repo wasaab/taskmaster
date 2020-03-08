@@ -1,6 +1,6 @@
 {
   "name": "taskmaster",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A React Native App for task management",
   "main": "node_modules/expo/AppEntry.js",
   "author": "Kent",

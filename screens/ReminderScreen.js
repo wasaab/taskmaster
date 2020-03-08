@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Haptic } from 'expo'
+import * as Haptic from 'expo-haptics';
 import Reminder from '../components/Reminder'
 import Colors from '../constants/Colors';
 import DayHeader from '../components/DayHeader'
@@ -12,7 +12,7 @@ export default class ReminderScreen extends React.Component {
   };
 
   navigateBack = () => {
-    Haptic.impact('heavy');
+    Haptic.impactAsync('heavy');
     this.props.navigation.goBack();
   }
 

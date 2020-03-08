@@ -239,6 +239,7 @@ export default class TaskList extends Component {
       <RefreshControl
         title='Create task'
         titleColor={Colors.WHITE}
+        tintColor={Colors.WHITE}
         onRefresh={this.createTask}
         refreshing={this.state.creatingTask}/>
     )

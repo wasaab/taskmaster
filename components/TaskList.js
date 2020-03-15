@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, RefreshControl, AsyncStorage, Animated, TouchableHighlight, KeyboardAvoidingView } from 'react-native';
-import { Avatar, Badge, Icon, withBadge } from 'react-native-elements'
+import { Avatar, Badge, withBadge } from 'react-native-elements'
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptic from 'expo-haptics';
 import Colors from '../constants/Colors'
 import DayHeader from './DayHeader'
@@ -8,15 +9,15 @@ import ListItem from './ListItem';
 import TaskManager from './TaskManager';
 import KeyboardAwareSwipeListView from './KeyboardAwareSwipeListView';
 import { NavigationActions } from 'react-navigation';
+const taskManager = new TaskManager();
 
 export default class TaskList extends Component {
 
   constructor(props) {
     super(props);
 
-    this.taskManager = new TaskManager();
     this.state = {
-      tasks: this.taskManager.getTasks(),
+      tasks: taskManager.getTasks(),
       activeTaskKey: '',
       pageRenderedIn: props.pageRenderedIn || 'TaskList',
       isTimesheet: props.pageRenderedIn === 'Timesheet',
@@ -26,28 +27,12 @@ export default class TaskList extends Component {
     this.taskIdToActiveSwipeDirection = {};
     this.rowSwipeAnimatedValues = {};
 
+    maybeAddCreateTaskTip();
     this.state.tasks.forEach((day) => {
         day.data.forEach((task) => {
           this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
         });
     });
-  }
-
-  buildTask(title='', blocker='', date=new Date()) {
-    return {
-      key: this.taskManager.getTaskId({ title: title, date: date.valueOf() }),
-      title: title,
-      blocker: blocker,
-      completionPercentage: 0,
-      hoursLogged: 0,
-      isComplete: false,
-      date: date.valueOf(),
-      reminder: {
-        time: null,
-        repeat: 'never',
-        enabled: false
-      }
-    };
   }
 
   navigateBack = () => {
@@ -70,20 +55,33 @@ export default class TaskList extends Component {
     }
   }
 
+  addCreateTaskTip = (dayTasks) => {
+    const today = new Date().toLocaleDateString();
+
+    const task = taskManager.buildTask();
+    task.isCreateTaskTip = true;
+    dayTasks.push(task);
+    this.setState({ activeTaskKey: task.key });
+  }
+
   deleteSectionRow = (rowMap, taskID) => {
     this.closeRow(rowMap, taskID);
 
     setTimeout(() => {
-      const { dayIdx, taskIdx } = this.taskManager.getTask(taskID);
+      const { dayIdx, taskIdx } = taskManager.getTask(taskID);
       const day = this.state.tasks[dayIdx];
 
       day.data.splice(taskIdx, 1);
 
-      if (0 === day.data.length && day.day !== new Date().toLocaleDateString()) {
-        this.state.tasks.splice(dayIdx, 1);
+      if (0 === day.data.length) {
+        if (day.day !== new Date().toLocaleDateString()) {
+          this.state.tasks.splice(dayIdx, 1);
+        } else {
+          this.addCreateTaskTip(day.data);
+        }
       }
 
-      this.taskManager.storeTasks();
+      taskManager.storeTasks();
     }, 250)
   }
 
@@ -95,10 +93,10 @@ export default class TaskList extends Component {
     if (toValue < 0) {
       this.deleteSectionRow(rowMap, taskID);
     } else {
-      const { task } = this.taskManager.getTask(taskID);
+      const { task } = taskManager.getTask(taskID);
 
       task.isComplete = true;
-      this.taskManager.storeTasks();
+      taskManager.storeTasks();
     }
   }
 
@@ -116,7 +114,7 @@ export default class TaskList extends Component {
 
   componentDidMount = () => {
     // Workaround for KeyboardAwareSectionList bug with data refreshing
-    setTimeout(() => this.taskManager.setTasks(this.state.tasks), 1)
+    setTimeout(() => taskManager.setTasks(this.state.tasks), 1)
   }
 
   determineRowColor = (taskID, side) => {
@@ -127,18 +125,18 @@ export default class TaskList extends Component {
   }
 
   handleTitleOrBlockerInputBlur = (taskID, title, blocker) => {
-    const { task, dayIdx, taskIdx } = this.taskManager.getTask(taskID);
+    const { task, dayIdx, taskIdx } = taskManager.getTask(taskID);
 
     if (task.title === title && task.blocker === blocker) { return; }
 
     task.title = title;
     task.blocker = blocker;
 
-    this.taskManager.storeTasks();
+    taskManager.storeTasks();
   }
 
   handleBadgeInputBlur = (taskID, hours, completionPercentage) => {
-    const { task, dayIdx, taskIdx } = this.taskManager.getTask(taskID);
+    const { task, dayIdx, taskIdx } = taskManager.getTask(taskID);
 
     if (task.hoursLogged !== hours || task.completionPercentage !== completionPercentage) {
       if (this.state.isTimesheet) {
@@ -148,7 +146,7 @@ export default class TaskList extends Component {
         task.completionPercentage = completionPercentage;
       }
 
-      this.taskManager.storeTasks();
+      taskManager.storeTasks();
     }
 
     this.setState({ activeTaskKey: `${Math.floor(Math.random() * 10000)}` });
@@ -159,6 +157,15 @@ export default class TaskList extends Component {
   }
 
   renderTaskItem = (data, rowMap) => {
+    if (data.item.isCreateTaskTip) {
+      return (
+        <View style={[styles.swipeDownTipContainer, this.determineDayDisplayStyle()]}>
+          <MaterialCommunityIcons name="gesture-swipe-down" size={70} color={Colors.WHITE} />
+          <Text style={styles.swipeDownTipText}>Create a task</Text>
+        </View>
+      );
+    }
+
     return <ListItem
         title={data.item.title}
         blocker={data.item.blocker}
@@ -177,6 +184,8 @@ export default class TaskList extends Component {
   }
 
   renderSwipeItems = (data, rowMap) => {
+    if (data.item.isCreateTaskTip) { return; }
+
     return <View style={[styles.rowBack, { backgroundColor: this.determineRowColor(data.item.key) }]}>
       <TouchableOpacity style={[styles.leftSwipeItem, { backgroundColor: this.determineRowColor(data.item.key, 'left') }]}>
         <Animated.View style={{
@@ -185,7 +194,7 @@ export default class TaskList extends Component {
             scale: this.getScaleFromSwipeVal(data.item.key)
           }]
         }}>
-          <Icon size={28} color={Colors.WHITE} name="check-circle" type="materialicons" />
+          <MaterialIcons size={28} color={Colors.WHITE} name="check-circle" />
         </Animated.View>
       </TouchableOpacity>
       <TouchableOpacity
@@ -198,7 +207,7 @@ export default class TaskList extends Component {
             scale: this.getScaleFromSwipeVal(data.item.key)
           }]
         }}>
-          <Icon size={28} color={Colors.WHITE} name="delete" type="materialicons" />
+          <MaterialIcons size={28} color={Colors.WHITE} name="delete" />
         </Animated.View>
       </TouchableOpacity>
     </View>;
@@ -223,11 +232,16 @@ export default class TaskList extends Component {
     this.setState({ creatingTask: true });
 
     setTimeout(() => {
-      const task = this.buildTask();
+      const task = taskManager.buildTask();
       const today = new Date().toLocaleDateString();
+      const todaysTasks = findDay(today);
+
+      if (todaysTasks.data.length === 0 || todaysTasks.data[0].isCreateTaskTip) {
+        todaysTasks.data = [];
+      }
 
       this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
-      this.state.tasks.find((dayTasks) => dayTasks.day === today).data.unshift(task);
+      todaysTasks.data.unshift(task);
       this.setState({ creatingTask: false, activeTaskKey: task.key });
     }, 500)
   }
@@ -286,6 +300,22 @@ export default class TaskList extends Component {
   }
 }
 
+function maybeAddCreateTaskTip() {
+  const today = new Date().toLocaleDateString();
+  const todaysTasks = findDay(today);
+
+  if (todaysTasks) { return; }
+
+  const task = taskManager.buildTask();
+  task.isCreateTaskTip = true;
+
+  taskManager.getTasks().push(taskManager.buildDay(today, task));
+}
+
+function findDay(today) {
+  return taskManager.getTasks().find((dayTasks) => dayTasks.day === today);
+}
+
 function getSwipeDirectionColor(side) {
   return side ==='left' ? Colors.statusGreen : Colors.headerRed;
 }
@@ -323,4 +353,23 @@ const styles = StyleSheet.create({
     left: 0,
     paddingLeft: 10
   },
+  swipeDownTipContainer: {
+    paddingTop: 8,
+    paddingBottom: 8,
+    backgroundColor: Colors.darkBackground,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-evenly',
+    borderStyle: 'dashed',
+    borderWidth: 3,
+    borderColor: Colors.WHITE,
+    marginTop: 2
+  },
+  swipeDownTipText: {
+    fontFamily: 'System',
+    fontWeight: '700',
+    fontSize: 20,
+    color: Colors.WHITE,
+    marginLeft: -50
+  }
 });

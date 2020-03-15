@@ -1,6 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import SwipeUpDown from 'react-native-swipe-up-down';
+import { StyleSheet, View } from 'react-native';
 import TaskList from '../components/TaskList';
 import Colors from '../constants/Colors'
 

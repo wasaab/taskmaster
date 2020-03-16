@@ -13,7 +13,7 @@ You should then see a prompt with instructions on how to run the app on your pho
 
 ## Demo
 
-Go to [taskmaster on expo.io](https://snack.expo.io/@wasaab/taskmaster-demo) and select iOS in the device simulator on the right.
+Try it yourself at [snack.expo.io](https://snack.expo.io/@wasaab/taskmaster-0.2.0?platform=ios)!
 
 Within the simulator you can select:
 

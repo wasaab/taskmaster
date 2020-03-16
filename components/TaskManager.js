@@ -78,6 +78,25 @@ export default class TaskManager {
     };
   }
 
+  findMostRecentDay() {
+    const today = new Date().toLocaleDateString();
+    const days = this.tasks;
+
+    for (let dayIdx = days.length - 1; dayIdx >= 0; dayIdx--) {
+      const dayTasks = days[dayIdx];
+
+      if (dayTasks.day > today) { continue; }
+
+      return {
+        day: dayTasks,
+        dayIdx: dayIdx,
+        isToday: dayTasks.day === today
+      };
+    }
+
+    return {};
+  }
+
   storeTasks() {
     AsyncStorage.setItem('tasks', this.getPopulatedTasksJSON())
       .catch((error) => {
@@ -85,11 +104,23 @@ export default class TaskManager {
       });
   }
 
+  createTipDay(date) {
+    const tipDay = this.buildDay(date);
+
+    tipDay.isRolledFromPreviousDays = true;
+
+    return tipDay;
+  }
+
   getPopulatedTasksJSON() {
     return JSON.stringify(this.tasks.reduce((populatedDays, day) => {
-      day.data = day.data.filter(isPopulatedTask);
+      const isCreateTaskTipFound = filterPopulatedAndIsTipFound(day);
 
-      return getUpdatedDays(day, populatedDays);
+      if (0 !== day.data.length) {
+        populatedDays.push(isCreateTaskTipFound ? this.createTipDay(day.day) : day);
+      }
+
+      return populatedDays;
     }, []));
   }
 
@@ -106,30 +137,41 @@ export default class TaskManager {
 
   maybeRolloverTasksToToday() {
     const today = new Date().toLocaleDateString();
-    const todaysTasks = this.tasks.find((day) => day.day === today);
+    const { day, dayIdx, isToday } = this.findMostRecentDay();
 
-    if (todaysTasks && todaysTasks.isRolledFromPreviousDays) { return; }
+    if (isToday && day.isRolledFromPreviousDays) { return; }
 
-    this.rolloverIncompleteTasks(today);
+    const rolloverDayIdx = isToday ? dayIdx : dayIdx + 1;
+    this.rolloverIncompleteTasks(rolloverDayIdx, isToday);
   }
 
-  rolloverIncompleteTasks(today) {
+  rolloverIncompleteTasks(rolloverDayIdx, isToday) {
     var incompleteTasks = [];
 
-    this.tasks = this.tasks.reduce((days, day) => {
-      if (day.day < today) {
-        this.maybeAddIncompleteTasks(day.data, incompleteTasks);
-      } else if (day.day === today) {
-        this.rolloverTasks(day, incompleteTasks);
-        incompleteTasks = [];
-      }
+    for (let dayIdx = rolloverDayIdx - 1; dayIdx >= 0; dayIdx--) {
+      const day = this.tasks[dayIdx];
 
-      return getUpdatedDays(day, days);
-    }, []);
+      this.maybeAddIncompleteTasks(day.data, incompleteTasks);
 
-    if (0 === incompleteTasks.length) { return; }
+      if (day.isRolledFromPreviousDays) { break; }
+    }
 
-    this.rolloverTasks(today, incompleteTasks);
+    this.rolloverTasks(incompleteTasks, rolloverDayIdx, isToday);
+  }
+
+  rolloverTasks(incompleteTasks, rolloverDayIdx, isToday) {
+    const rolledDay = isToday ? this.tasks[rolloverDayIdx] :
+      this.buildDay(new Date().toLocaleDateString(), ...incompleteTasks);
+
+    rolledDay.isRolledFromPreviousDays = true;
+
+    if (isToday) {
+      this.tasks[rolloverDayIdx].data.unshift(...incompleteTasks);
+    } else {
+      this.tasks.splice(rolloverDayIdx, 0, rolledDay);
+    }
+
+    this.storeTasks();
   }
 
   maybeAddIncompleteTasks(tasks, incompleteTasks) {
@@ -141,20 +183,6 @@ export default class TaskManager {
     });
   }
 
-  rolloverTasks(today, incompleteTasks, day) {
-    const rolledDay = day || this.buildDay(today, ...incompleteTasks);
-
-    rolledDay.isRolledFromPreviousDays = true;
-
-    if (day) {
-      day.data.push(...incompleteTasks);
-    } else {
-      this.tasks.push(rolledDay);
-    }
-
-    this.storeTasks();
-  }
-
   getTodayPlusOffset(offset = 0) {
     var day = new Date();
     day.setDate(day.getDate() + offset);
@@ -163,12 +191,20 @@ export default class TaskManager {
   }
 }
 
-function getUpdatedDays(day, days) {
-  if (0 !== day.data.length) {
-    days.push(day);
-  }
+function filterPopulatedAndIsTipFound(day) {
+  var isCreateTaskTipFound = false;
 
-  return days;
+  day.data = day.data.filter((task) => {
+    if (isPopulatedTask(task)) {
+      return true;
+    }
+    if (task.isCreateTaskTip) {
+      isCreateTaskTipFound = true;
+      return true;
+    }
+  });
+
+  return isCreateTaskTipFound;
 }
 
 function isPopulatedTask(task) {

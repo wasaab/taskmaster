@@ -56,9 +56,8 @@ export default class TaskList extends Component {
   }
 
   addCreateTaskTip = (dayTasks) => {
-    const today = new Date().toLocaleDateString();
-
     const task = taskManager.buildTask();
+
     task.isCreateTaskTip = true;
     dayTasks.push(task);
     this.setState({ activeTaskKey: task.key });
@@ -234,14 +233,14 @@ export default class TaskList extends Component {
     setTimeout(() => {
       const task = taskManager.buildTask();
       const today = new Date().toLocaleDateString();
-      const todaysTasks = findDay(today);
+      const { day } = taskManager.findMostRecentDay();
 
-      if (todaysTasks.data.length === 0 || todaysTasks.data[0].isCreateTaskTip) {
-        todaysTasks.data = [];
+      if (day.data.length === 0 || day.data[0].isCreateTaskTip) {
+        day.data = [];
       }
 
       this.rowSwipeAnimatedValues[task.key] = new Animated.Value(0);
-      todaysTasks.data.unshift(task);
+      day.data.unshift(task);
       this.setState({ creatingTask: false, activeTaskKey: task.key });
     }, 500)
   }
@@ -301,19 +300,21 @@ export default class TaskList extends Component {
 }
 
 function maybeAddCreateTaskTip() {
-  const today = new Date().toLocaleDateString();
-  const todaysTasks = findDay(today);
+  const { day, dayIdx, isToday } = taskManager.findMostRecentDay();
 
-  if (todaysTasks) { return; }
+  if (isToday && day.data.length !== 0) { return; }
 
   const task = taskManager.buildTask();
+
   task.isCreateTaskTip = true;
 
-  taskManager.getTasks().push(taskManager.buildDay(today, task));
-}
+  if (isToday) {
+    taskManager.getTasks()[dayIdx].data.push(task);
+  } else {
+    const today = new Date().toLocaleDateString();
 
-function findDay(today) {
-  return taskManager.getTasks().find((dayTasks) => dayTasks.day === today);
+    taskManager.getTasks().splice(dayIdx + 1, 0, taskManager.buildDay(today, task));
+  }
 }
 
 function getSwipeDirectionColor(side) {
@@ -356,14 +357,15 @@ const styles = StyleSheet.create({
   swipeDownTipContainer: {
     paddingTop: 8,
     paddingBottom: 8,
+    marginTop: 2,
+    marginBottom: 2,
     backgroundColor: Colors.darkBackground,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
     borderStyle: 'dashed',
     borderWidth: 3,
-    borderColor: Colors.WHITE,
-    marginTop: 2
+    borderColor: Colors.WHITE
   },
   swipeDownTipText: {
     fontFamily: 'System',

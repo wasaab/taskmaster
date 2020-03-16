@@ -103,9 +103,9 @@ export default class TaskList extends Component {
     const { key, value } = swipeData;
     this.rowSwipeAnimatedValues[key].setValue(Math.abs(value));
 
-    const direction = value < 0 ? 'right' : 'left';
+    const direction = getSwipeDirection(value);
 
-    if (this.taskIdToActiveSwipeDirection[key] === direction) { return; }
+    if (!direction || this.taskIdToActiveSwipeDirection[key] === direction) { return; }
 
     this.taskIdToActiveSwipeDirection[key] = direction;
     this.setState({ taskIdToActiveSwipeDirection: this.taskIdToActiveSwipeDirection });
@@ -319,6 +319,11 @@ function maybeAddCreateTaskTip() {
 
 function getSwipeDirectionColor(side) {
   return side ==='left' ? Colors.statusGreen : Colors.headerRed;
+}
+
+function getSwipeDirection(swipeValue) {
+  if (swipeValue < -0.1) { return 'right'; }
+  if (swipeValue > 0.1) { return 'left'; }
 }
 
 const styles = StyleSheet.create({

@@ -141,11 +141,13 @@ export default class TaskManager {
 
     if (isToday && day.isRolledFromPreviousDays) { return; }
 
-    const rolloverDayIdx = isToday ? dayIdx : dayIdx + 1;
-    this.rolloverIncompleteTasks(rolloverDayIdx, isToday);
+    const { incompleteTasks, rolloverDayIdx } = this.getIncompleteTasksFromPreviousDays(dayIdx, isToday);
+
+    this.rolloverTasks(incompleteTasks, rolloverDayIdx, isToday);
   }
 
-  rolloverIncompleteTasks(rolloverDayIdx, isToday) {
+  getIncompleteTasksFromPreviousDays(mostRecentDayIdx, isToday) {
+    var rolloverDayIdx = isToday ? mostRecentDayIdx : mostRecentDayIdx + 1;
     var incompleteTasks = [];
 
     for (let dayIdx = rolloverDayIdx - 1; dayIdx >= 0; dayIdx--) {
@@ -153,10 +155,18 @@ export default class TaskManager {
 
       this.maybeAddIncompleteTasks(day.data, incompleteTasks);
 
-      if (day.isRolledFromPreviousDays) { break; }
+      if (day.isRolledFromPreviousDays) {
+        // If previously rolled day has no tasks, remove it
+        if (0 === day.data.length) {
+          this.tasks.splice(dayIdx, 1);
+          rolloverDayIdx--;
+        }
+
+        break;
+      }
     }
 
-    this.rolloverTasks(incompleteTasks, rolloverDayIdx, isToday);
+    return { incompleteTasks, rolloverDayIdx };
   }
 
   rolloverTasks(incompleteTasks, rolloverDayIdx, isToday) {

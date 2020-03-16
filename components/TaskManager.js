@@ -53,21 +53,134 @@ export default class TaskManager {
     return `${hash}`;
   }
 
+  buildTask(title='', blocker='', date=new Date(), completionPercentage=0) {
+    return {
+      key: this.getTaskId({ title: title, date: date.valueOf() }),
+      title: title,
+      blocker: blocker,
+      completionPercentage: completionPercentage,
+      hoursLogged: 0,
+      isComplete: false,
+      date: date.valueOf(),
+      reminder: {
+        time: null,
+        repeat: 'never',
+        enabled: false
+      }
+    };
+  }
+
+  buildDay(day, ...tasks) {
+    return {
+      day: day,
+      hoursLogged: 0,
+      data: tasks
+    };
+  }
+
+  findMostRecentDay() {
+    const today = new Date().toLocaleDateString();
+    const days = this.tasks;
+
+    for (let dayIdx = days.length - 1; dayIdx >= 0; dayIdx--) {
+      const dayTasks = days[dayIdx];
+
+      if (dayTasks.day > today) { continue; }
+
+      return {
+        day: dayTasks,
+        dayIdx: dayIdx,
+        isToday: dayTasks.day === today
+      };
+    }
+
+    return {};
+  }
+
   storeTasks() {
-    AsyncStorage.setItem('tasks', JSON.stringify(this.tasks))
+    AsyncStorage.setItem('tasks', this.getPopulatedTasksJSON())
       .catch((error) => {
         console.error(error);
       });
   }
 
+  createTipDay(date) {
+    const tipDay = this.buildDay(date);
+
+    tipDay.isRolledFromPreviousDays = true;
+
+    return tipDay;
+  }
+
+  getPopulatedTasksJSON() {
+    return JSON.stringify(this.tasks.reduce((populatedDays, day) => {
+      const isCreateTaskTipFound = filterPopulatedAndIsTipFound(day);
+
+      if (0 !== day.data.length) {
+        populatedDays.push(isCreateTaskTipFound ? this.createTipDay(day.day) : day);
+      }
+
+      return populatedDays;
+    }, []));
+  }
+
   updateTasksFromStorage() {
     AsyncStorage.getItem('tasks')
       .then((tasks) => {
-        this.tasks = !tasks ? this.createDemoTasks() : JSON.parse(tasks);
+        this.tasks = !tasks ? [] : JSON.parse(tasks);
+        this.maybeRolloverTasksToToday();
       })
       .catch((error) => {
         console.error(error);
       });
+  }
+
+  maybeRolloverTasksToToday() {
+    const today = new Date().toLocaleDateString();
+    const { day, dayIdx, isToday } = this.findMostRecentDay();
+
+    if (isToday && day.isRolledFromPreviousDays) { return; }
+
+    const rolloverDayIdx = isToday ? dayIdx : dayIdx + 1;
+    this.rolloverIncompleteTasks(rolloverDayIdx, isToday);
+  }
+
+  rolloverIncompleteTasks(rolloverDayIdx, isToday) {
+    var incompleteTasks = [];
+
+    for (let dayIdx = rolloverDayIdx - 1; dayIdx >= 0; dayIdx--) {
+      const day = this.tasks[dayIdx];
+
+      this.maybeAddIncompleteTasks(day.data, incompleteTasks);
+
+      if (day.isRolledFromPreviousDays) { break; }
+    }
+
+    this.rolloverTasks(incompleteTasks, rolloverDayIdx, isToday);
+  }
+
+  rolloverTasks(incompleteTasks, rolloverDayIdx, isToday) {
+    const rolledDay = isToday ? this.tasks[rolloverDayIdx] :
+      this.buildDay(new Date().toLocaleDateString(), ...incompleteTasks);
+
+    rolledDay.isRolledFromPreviousDays = true;
+
+    if (isToday) {
+      this.tasks[rolloverDayIdx].data.unshift(...incompleteTasks);
+    } else {
+      this.tasks.splice(rolloverDayIdx, 0, rolledDay);
+    }
+
+    this.storeTasks();
+  }
+
+  maybeAddIncompleteTasks(tasks, incompleteTasks) {
+    tasks.forEach((task) => {
+      if (task.isComplete) { return; }
+
+      incompleteTasks.push(
+        this.buildTask(task.title, task.blocker, new Date(), task.completionPercentage));
+    });
   }
 
   getTodayPlusOffset(offset = 0) {
@@ -76,196 +189,25 @@ export default class TaskManager {
 
     return day;
   }
-
-  createDemoTasks() {
-    return [
-      {
-        "day": this.getTodayPlusOffset(-1).toLocaleDateString(),
-        "hoursLogged": 0,
-        "data": [
-          {
-            "key": "193685690",
-            "title": "Task from yesterday",
-            "blocker": "This is a blocker",
-            "completionPercentage": 35,
-            "hoursLogged": 0,
-            "date": 1559013078927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(1).getTime(),
-              "repeat": "never",
-              "enabled": true
-            }
-          },
-          {
-            "key": "-311872935",
-            "title": "Another task from yesterday",
-            "blocker": "",
-            "completionPercentage": 15,
-            "hoursLogged": 0,
-            "date": 1559013078927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(4).getTime(),
-              "repeat": "daily",
-              "enabled": false
-            }
-          },
-          {
-            "key": "-817431560",
-            "title": "Final task from yesterday",
-            "blocker": "This is a blocker",
-            "completionPercentage": 25,
-            "hoursLogged": 0,
-            "date": 1559013078927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset().getTime(),
-              "repeat": "weekly",
-              "enabled": true
-            }
-          }
-        ]
-      },
-      {
-        "day": this.getTodayPlusOffset().toLocaleDateString(),
-        "hoursLogged": 0,
-        "data": [
-          {
-            "key": "-1314165795",
-            "title": "Improve animations",
-            "blocker": "Need to upgrade react-native version",
-            "completionPercentage": 40,
-            "hoursLogged": 0,
-            "date": 1559099478927,
-            "isComplete": false,
-            "reminder": {
-              "time": null,
-              "repeat": "never",
-              "enabled": false
-            }
-          },
-          {
-            "key": "694757902",
-            "title": "Improve the reminder screen",
-            "blocker": "Need mockup",
-            "completionPercentage": 70,
-            "hoursLogged": 0,
-            "date": 1559099478927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(2).getTime(),
-              "repeat": "never",
-              "enabled": true
-            }
-          },
-          {
-            "key": "-395792986",
-            "title": "Implement task pruning",
-            "blocker": "Clarification needed",
-            "completionPercentage": 83,
-            "hoursLogged": 0,
-            "date": 1559099478927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(2).getTime(),
-              "repeat": "never",
-              "enabled": false
-            }
-          },
-          {
-            "key": "513648197",
-            "title": "Make the task title wrap",
-            "blocker": "Container not flexible",
-            "completionPercentage": 0,
-            "hoursLogged": 0,
-            "date": 1559099478927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(2).getTime(),
-              "repeat": "never",
-              "enabled": true
-            }
-          },
-          {
-            "key": "-1784365333",
-            "title": "Add extended task details",
-            "blocker": "",
-            "completionPercentage": 27,
-            "hoursLogged": 0,
-            "date": 1559099478927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(3).getTime(),
-              "repeat": "daily",
-              "enabled": false
-            }
-          }
-        ]
-      },
-      {
-        "day": this.getTodayPlusOffset(1).toLocaleDateString(),
-        "hoursLogged": 0,
-        "data": [
-          {
-            "key": "-1811633621",
-            "title": "Tomorrow's task",
-            "blocker": "This is a blocker",
-            "completionPercentage": 95,
-            "hoursLogged": 0,
-            "date": 1559185878927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(2).getTime(),
-              "repeat": "never",
-              "enabled": true
-            }
-          },
-          {
-            "key": "1977775050",
-            "title": "Task for tomorrow",
-            "blocker": "This is a blocker",
-            "completionPercentage": 15,
-            "hoursLogged": 0,
-            "date": 1559185878927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(2).getTime(),
-              "repeat": "never",
-              "enabled": false
-            }
-          },
-          {
-            "key": "1472216425",
-            "title": "Another task for tomorrow",
-            "blocker": "",
-            "completionPercentage": 46,
-            "hoursLogged": 0,
-            "date": 1559185878927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(2).getTime(),
-              "repeat": "never",
-              "enabled": true
-            }
-          },
-          {
-            "key": "966657800",
-            "title": "Yet another task for tomorrow",
-            "blocker": "",
-            "completionPercentage": 25,
-            "hoursLogged": 0,
-            "date": 1559185878927,
-            "isComplete": false,
-            "reminder": {
-              "time": this.getTodayPlusOffset(2).getTime(),
-              "repeat": "never",
-              "enabled": false
-            }
-          }
-        ]
-      }
-    ];
-  }
 }
 
+function filterPopulatedAndIsTipFound(day) {
+  var isCreateTaskTipFound = false;
+
+  day.data = day.data.filter((task) => {
+    if (isPopulatedTask(task)) {
+      return true;
+    }
+    if (task.isCreateTaskTip) {
+      isCreateTaskTipFound = true;
+      return true;
+    }
+  });
+
+  return isCreateTaskTipFound;
+}
+
+function isPopulatedTask(task) {
+  return task.title || task.blocker
+    || task.completionPercentage !== 0 || task.hoursLogged !== 0;
+}

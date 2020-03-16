@@ -8,15 +8,20 @@ import { AppLoading } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 import Colors from './constants/Colors'
 import TaskManager from './components/TaskManager';
+const taskManager = new TaskManager();
 
 export default class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    taskManager.updateTasksFromStorage();
+  }
+
   state = {
     isLoadingComplete: false,
   };
 
   render() {
-    new TaskManager().updateTasksFromStorage();
-
     if (!this.state.isLoadingComplete && !this.props.skipLoadingScreen) {
       return (
         <AppLoading

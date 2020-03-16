@@ -138,10 +138,18 @@ export default class ListItem extends Component {
         }, 700);
     }
 
-    componentDidUpdate = () => {
+    maybeFocusBadgeInput = () => {
         if (!this.isActiveTask() || !this.badgeInputRef) { return; }
 
         this.badgeInputRef.focus();
+    }
+
+    componentDidUpdate = () => {
+        this.maybeFocusBadgeInput();
+    }
+
+    componentDidMount = () => {
+        this.maybeFocusBadgeInput();
     }
 
     isNewlyCreatedTask() {
